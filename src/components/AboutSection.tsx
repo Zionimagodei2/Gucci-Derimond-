@@ -10,10 +10,10 @@ export default function AboutSection() {
           <div className="relative">
             <div className="aspect-[4/5] overflow-hidden">
               <img 
-                src="https://picsum.photos/seed/about-tac/800/1000" 
+                src="https://cdn.shopify.com/s/files/1/0635/8276/5242/files/5X8A2262.jpg?v=1772859284" 
                 alt="Tacoma on trail" 
                 className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
+                
               />
             </div>
             <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-primary p-10 hidden md:flex flex-col justify-center">

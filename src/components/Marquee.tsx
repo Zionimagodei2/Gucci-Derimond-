@@ -13,7 +13,12 @@ export default function Marquee() {
       try {
         const res = await fetch('/api/marquee');
         const data = await res.json();
-        setImages(data);
+        if (Array.isArray(data)) {
+          setImages(data);
+        } else {
+          console.error('Failed to fetch marquee images:', data);
+          setImages([]);
+        }
       } catch (error) {
         console.error('Error fetching marquee images:', error);
       }

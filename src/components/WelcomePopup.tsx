@@ -47,19 +47,19 @@ export default function WelcomePopup() {
             
             <div className="w-full md:w-1/2 aspect-square md:aspect-auto">
               <img 
-                src="https://picsum.photos/seed/popup/800/1000" 
+                src="https://cdn.shopify.com/s/files/1/0635/8276/5242/files/IMG_3211.png?v=1772760979" 
                 alt="Welcome" 
                 className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
+                
               />
             </div>
             
             <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center text-center md:text-left">
               <h2 className="text-3xl font-bold uppercase tracking-tighter mb-4">
-                GET 10% OFF
+                JOIN THE CREW
               </h2>
               <p className="text-muted mb-8 uppercase tracking-widest text-sm font-bold">
-                YOUR FIRST ORDER
+                STAY UPDATED
               </p>
               <p className="text-muted mb-8 text-sm leading-relaxed">
                 Join the Marco Tac crew and get exclusive access to new drops, build guides, and members-only sales.
@@ -73,7 +73,7 @@ export default function WelcomePopup() {
                   required
                 />
                 <button type="submit" className="btn-primary w-full">
-                  CLAIM MY DISCOUNT
+                  SUBSCRIBE NOW
                 </button>
               </form>
               
@@ -81,7 +81,7 @@ export default function WelcomePopup() {
                 onClick={handleDismiss}
                 className="mt-6 text-[10px] uppercase tracking-widest font-bold text-muted hover:text-dark transition-colors"
               >
-                No thanks, I'll pay full price
+                No thanks, maybe later
               </button>
             </div>
           </motion.div>

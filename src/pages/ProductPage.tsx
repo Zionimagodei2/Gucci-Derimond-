@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Star, ChevronRight, Minus, Plus, Share2, Facebook, Twitter, Pin as Pinterest, Link as LinkIcon, Info, X } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Star, ChevronRight, ChevronLeft, Minus, Plus, Share2, Facebook, Twitter, Pin as Pinterest, Link as LinkIcon, Info, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { motion, AnimatePresence } from 'motion/react';
+import FeaturedCarousel from '../components/FeaturedCarousel';
 
 interface Product {
   id: number;
@@ -19,7 +20,8 @@ interface Product {
 
 export default function ProductPage() {
   const { id } = useParams();
-  const { addToCart } = useCart();
+  const navigate = useNavigate();
+  const { addToCart, setIsCartOpen } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
@@ -59,18 +61,23 @@ export default function ProductPage() {
     );
   }
 
-  const images = [product.image, "https://picsum.photos/seed/prod1-2/800/800", "https://picsum.photos/seed/prod1-3/800/800", "https://picsum.photos/seed/prod1-4/800/800"];
+  const images = [product.image];
 
   return (
     <div className="bg-white min-h-screen pb-24">
       {/* Breadcrumb */}
       <div className="bg-border/10 py-4">
-        <div className="container-custom flex items-center gap-2 text-[12px] uppercase font-bold tracking-widest text-muted">
-          <Link to="/" className="hover:text-dark">Home</Link>
-          <ChevronRight size={12} />
-          <Link to="/collections/all" className="hover:text-dark">Products</Link>
-          <ChevronRight size={12} />
-          <span className="text-dark truncate max-w-[120px] sm:max-w-[200px]">{product.name}</span>
+        <div className="container-custom flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[12px] uppercase font-bold tracking-widest text-muted">
+            <Link to="/" className="hover:text-dark">Home</Link>
+            <ChevronRight size={12} />
+            <Link to="/collections/all" className="hover:text-dark">Products</Link>
+            <ChevronRight size={12} />
+            <span className="text-dark truncate max-w-[120px] sm:max-w-[200px]">{product.name}</span>
+          </div>
+          <button onClick={() => window.history.back()} className="text-[12px] uppercase font-bold tracking-widest text-muted hover:text-dark flex items-center gap-1">
+            <ChevronLeft size={16} /> Back
+          </button>
         </div>
       </div>
 
@@ -79,22 +86,24 @@ export default function ProductPage() {
           {/* Left: Image Gallery (60%) */}
           <div className="lg:col-span-7 space-y-4">
             <div className="aspect-square bg-border/20 overflow-hidden">
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              <img src={product.image} alt={product.name} className="w-full h-full object-cover"  />
             </div>
-            <div className="grid grid-cols-4 gap-4">
-              {images.map((img, idx) => (
-                <div key={idx} className="aspect-square bg-border/20 cursor-pointer hover:opacity-80 transition-opacity">
-                  <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                </div>
-              ))}
-            </div>
+            {images.length > 1 && (
+              <div className="grid grid-cols-4 gap-4">
+                {images.map((img, idx) => (
+                  <div key={idx} className="aspect-square bg-border/20 cursor-pointer hover:opacity-80 transition-opacity">
+                    <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Right: Purchase Panel (40%) */}
           <div className="lg:col-span-5 flex flex-col gap-6">
             <div>
-              <Link to={`/collections/${product.brand.toLowerCase()}`} className="text-[12px] uppercase font-bold tracking-widest text-primary hover:underline mb-2 block">
-                {product.brand}
+              <Link to={`/collections/${product.brand?.toLowerCase() || 'all'}`} className="text-[12px] uppercase font-bold tracking-widest text-primary hover:underline mb-2 block">
+                {product.brand || 'Brand'}
               </Link>
               <h1 className="text-2xl md:text-3xl font-bold tracking-tighter leading-tight mb-4">
                 {product.name}
@@ -102,15 +111,15 @@ export default function ProductPage() {
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} className={i < product.rating ? "fill-star text-star" : "text-border"} />
+                    <Star key={i} size={16} className={i < Math.floor(product.rating || 5) ? "fill-star text-star" : "text-border"} />
                   ))}
                 </div>
-                <span className="text-sm text-muted font-bold underline cursor-pointer">{product.reviews} Reviews</span>
+                <span className="text-sm text-muted font-bold underline cursor-pointer">{product.reviews || 0} Reviews</span>
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-3xl font-bold text-primary">${(product.salePrice || product.price).toFixed(2)}</span>
+                <span className="text-3xl font-bold text-primary">${Number(product.salePrice || product.price).toFixed(2)}</span>
                 {product.salePrice && (
-                  <span className="text-xl text-crossed line-through">${product.price.toFixed(2)}</span>
+                  <span className="text-xl text-crossed line-through">${Number(product.price).toFixed(2)}</span>
                 )}
               </div>
             </div>
@@ -139,9 +148,16 @@ export default function ProductPage() {
                     ADD TO CART
                   </button>
                 </div>
-                <button className="bg-dark text-white font-bold h-12 uppercase tracking-widest hover:bg-black transition-colors">
-                  BUY IT NOW
-                </button>
+                  <button 
+                    onClick={() => {
+                      addToCart({ ...product, price: product.salePrice || product.price, quantity }, false);
+                      setIsCartOpen(false);
+                      navigate('/checkout');
+                    }}
+                    className="bg-dark text-white font-bold h-12 uppercase tracking-widest hover:bg-black transition-colors"
+                  >
+                    BUY IT NOW
+                  </button>
               </div>
             </div>
 
@@ -152,9 +168,7 @@ export default function ProductPage() {
                     Description
                     <Plus size={16} className="group-open:rotate-45 transition-transform" />
                   </summary>
-                  <div className="pt-4 text-sm text-muted leading-relaxed">
-                    {product.description}
-                  </div>
+                  <div className="pt-4 text-sm text-muted leading-relaxed" dangerouslySetInnerHTML={{ __html: product.description }} />
                 </details>
                 <details className="group border-b border-border pb-4">
                   <summary className="flex items-center justify-between font-bold uppercase tracking-widest text-sm cursor-pointer list-none">
@@ -180,6 +194,8 @@ export default function ProductPage() {
           </div>
         </div>
       </div>
+
+      <FeaturedCarousel currentProductId={product.id} />
 
       {/* Fitment Modal */}
       <AnimatePresence>

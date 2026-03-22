@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "image_url": "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/b876c9af-08e8-4764-b9ee-b8b1b6bae484.jpg?v=1773696933",
+    "created_at": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "image_url": "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/57e3bfa1-7c73-4d7f-9a92-a0e225543091.webp?v=1773697888",
+    "created_at": "2024-01-01T00:00:00.000Z"
+  }
+]

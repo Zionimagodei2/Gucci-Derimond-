@@ -19,7 +19,12 @@ export default function BlogPreview() {
       try {
         const res = await fetch('/api/blogs');
         const data = await res.json();
-        setPosts(data.slice(0, 3)); // Show only latest 3
+        if (Array.isArray(data)) {
+          setPosts(data.slice(0, 3)); // Show only latest 3
+        } else {
+          console.error('Failed to fetch blog posts:', data);
+          setPosts([]);
+        }
       } catch (error) {
         console.error('Error fetching blog posts:', error);
       }
@@ -50,7 +55,7 @@ export default function BlogPreview() {
                   src={post.image} 
                   alt={post.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  referrerPolicy="no-referrer"
+                  
                 />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
               </Link>

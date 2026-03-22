@@ -20,7 +20,12 @@ export default function BlogPage() {
       try {
         const res = await fetch('/api/blogs');
         const data = await res.json();
-        setPosts(data);
+        if (Array.isArray(data)) {
+          setPosts(data);
+        } else {
+          console.error('Failed to fetch blog posts:', data);
+          setPosts([]);
+        }
       } catch (error) {
         console.error('Error fetching blog posts:', error);
       } finally {
@@ -70,7 +75,7 @@ export default function BlogPage() {
                     src={post.image} 
                     alt={post.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
+                    
                   />
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
                 </Link>

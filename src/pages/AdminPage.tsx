@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Save, X, Upload, Package, DollarSign, Tag, Info, ShieldAlert } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, Upload, Package, DollarSign, Tag, Info, ShieldAlert, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -14,6 +14,7 @@ interface Product {
   fitment: string;
   category: string;
   image: string;
+  badge?: string | null;
 }
 
 interface MarqueeImage {
@@ -31,26 +32,95 @@ interface BlogPost {
   created_at: string;
 }
 
+interface Order {
+  id: string;
+  date: string;
+  status: string;
+  total: number;
+  customer: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  items: any[];
+}
+
 export default function AdminPage() {
   const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [marqueeImages, setMarqueeImages] = useState<MarqueeImage[]>([]);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isEditing, setIsEditing] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState<Partial<Product>>({});
   const [blogFormData, setBlogFormData] = useState<Partial<BlogPost>>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'products' | 'marquee' | 'blog'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'marquee' | 'blog' | 'featured' | 'orders'>('products');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    type: 'product' | 'marquee' | 'blog' | null;
+    id: number | null;
+  }>({ isOpen: false, type: null, id: null });
 
   useEffect(() => {
     if (user?.isAdmin) {
       fetchProducts();
       fetchMarqueeImages();
       fetchBlogPosts();
+      fetchOrders();
     }
   }, [user]);
+
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch('/api/orders', {
+        headers: { 'x-admin-access': 'true' }
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setOrders(data);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
+  };
+
+  const updateOrderStatus = async (id: string, status: string) => {
+    try {
+      const res = await fetch(`/api/orders/${id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-access': 'true'
+        },
+        body: JSON.stringify({ status })
+      });
+      if (res.ok) {
+        fetchOrders();
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (imageFile) {
+      const url = URL.createObjectURL(imageFile);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [imageFile]);
 
   if (!user?.isAdmin) {
     return (
@@ -72,21 +142,49 @@ export default function AdminPage() {
   }
 
   const fetchProducts = async () => {
-    const res = await fetch('/api/products');
-    const data = await res.json();
-    setProducts(data);
+    try {
+      const res = await fetch('/api/products');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setProducts(data);
+      } else {
+        console.error('Failed to fetch products:', data);
+        setProducts([]);
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      setProducts([]);
+    }
   };
 
   const fetchMarqueeImages = async () => {
-    const res = await fetch('/api/marquee');
-    const data = await res.json();
-    setMarqueeImages(data);
+    try {
+      const res = await fetch('/api/marquee');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setMarqueeImages(data);
+      } else {
+        setMarqueeImages([]);
+      }
+    } catch (error) {
+      console.error('Error fetching marquee images:', error);
+      setMarqueeImages([]);
+    }
   };
 
   const fetchBlogPosts = async () => {
-    const res = await fetch('/api/blogs');
-    const data = await res.json();
-    setBlogPosts(data);
+    try {
+      const res = await fetch('/api/blogs');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setBlogPosts(data);
+      } else {
+        setBlogPosts([]);
+      }
+    } catch (error) {
+      console.error('Error fetching blog posts:', error);
+      setBlogPosts([]);
+    }
   };
 
   // --- Marquee Logic ---
@@ -104,21 +202,23 @@ export default function AdminPage() {
         body: data,
         headers: { 'x-admin-access': 'true' }
       });
-      if (res.ok) fetchMarqueeImages();
+      if (res.ok) {
+        fetchMarqueeImages();
+      } else {
+        const errData = await res.json().catch(() => null);
+        alert(`Failed to upload marquee image: ${errData?.error || res.statusText || 'Unknown error. File might be too large.'}`);
+      }
     } catch (error) {
       console.error('Error uploading marquee image:', error);
+      alert('Network error while uploading marquee image. Please try again.');
     } finally {
       setLoading(false);
+      e.target.value = '';
     }
   };
 
-  const handleDeleteMarquee = async (id: number) => {
-    if (!confirm('Delete this marquee image?')) return;
-    await fetch(`/api/marquee/${id}`, { 
-      method: 'DELETE',
-      headers: { 'x-admin-access': 'true' }
-    });
-    fetchMarqueeImages();
+  const handleDeleteMarquee = (id: number) => {
+    setDeleteConfirmation({ isOpen: true, type: 'marquee', id });
   };
 
   // --- Blog Logic ---
@@ -126,15 +226,11 @@ export default function AdminPage() {
     setIsEditing(post.id);
     setBlogFormData(post);
     setIsAdding(false);
+    setImageFile(null);
   };
 
-  const handleDeleteBlog = async (id: number) => {
-    if (!confirm('Delete this blog post?')) return;
-    await fetch(`/api/blogs/${id}`, { 
-      method: 'DELETE',
-      headers: { 'x-admin-access': 'true' }
-    });
-    fetchBlogPosts();
+  const handleDeleteBlog = (id: number) => {
+    setDeleteConfirmation({ isOpen: true, type: 'blog', id });
   };
 
   const handleBlogSubmit = async (e: React.FormEvent) => {
@@ -166,9 +262,13 @@ export default function AdminPage() {
         setBlogFormData({});
         setImageFile(null);
         fetchBlogPosts();
+      } else {
+        const errData = await res.json().catch(() => null);
+        alert(`Failed to save blog post: ${errData?.error || res.statusText || 'Unknown error. File might be too large.'}`);
       }
     } catch (error) {
       console.error('Error saving blog post:', error);
+      alert('Network error while saving blog post. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -178,17 +278,33 @@ export default function AdminPage() {
     setIsEditing(product.id);
     setFormData(product);
     setIsAdding(false);
+    setImageFile(null);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-    await fetch(`/api/products/${id}`, { 
-      method: 'DELETE',
-      headers: {
-        'x-admin-access': 'true'
+  const handleDelete = (id: number) => {
+    setDeleteConfirmation({ isOpen: true, type: 'product', id });
+  };
+
+  const confirmDelete = async () => {
+    const { type, id } = deleteConfirmation;
+    if (!type || id === null) return;
+
+    try {
+      if (type === 'product') {
+        await fetch(`/api/products/${id}`, { method: 'DELETE', headers: { 'x-admin-access': 'true' } });
+        fetchProducts();
+      } else if (type === 'marquee') {
+        await fetch(`/api/marquee/${id}`, { method: 'DELETE', headers: { 'x-admin-access': 'true' } });
+        fetchMarqueeImages();
+      } else if (type === 'blog') {
+        await fetch(`/api/blogs/${id}`, { method: 'DELETE', headers: { 'x-admin-access': 'true' } });
+        fetchBlogPosts();
       }
-    });
-    fetchProducts();
+    } catch (error) {
+      console.error(`Error deleting ${type}:`, error);
+    } finally {
+      setDeleteConfirmation({ isOpen: false, type: null, id: null });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -222,9 +338,13 @@ export default function AdminPage() {
         setFormData({});
         setImageFile(null);
         fetchProducts();
+      } else {
+        const errData = await res.json().catch(() => null);
+        alert(`Failed to save product: ${errData?.error || res.statusText || 'Unknown error. File might be too large.'}`);
       }
     } catch (error) {
       console.error('Error saving product:', error);
+      alert('Network error while saving product. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -239,24 +359,36 @@ export default function AdminPage() {
             <p className="text-primary text-xs font-bold uppercase tracking-widest mt-2">Manage your store content</p>
           </div>
           
-          <div className="flex bg-white/10 p-1 rounded-lg">
+          <div className="flex overflow-x-auto bg-white/10 p-1 rounded-lg no-scrollbar w-full md:w-auto">
             <button 
-              onClick={() => setActiveTab('products')}
-              className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-md transition-colors ${activeTab === 'products' ? 'bg-white text-dark' : 'hover:bg-white/20'}`}
+              onClick={() => { setActiveTab('products'); setIsEditing(null); setIsAdding(false); setImageFile(null); }}
+              className={`whitespace-nowrap px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-md transition-colors ${activeTab === 'products' ? 'bg-white text-dark' : 'hover:bg-white/20'}`}
             >
               Products
             </button>
             <button 
-              onClick={() => setActiveTab('marquee')}
-              className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-md transition-colors ${activeTab === 'marquee' ? 'bg-white text-dark' : 'hover:bg-white/20'}`}
+              onClick={() => { setActiveTab('marquee'); setIsEditing(null); setIsAdding(false); setImageFile(null); }}
+              className={`whitespace-nowrap px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-md transition-colors ${activeTab === 'marquee' ? 'bg-white text-dark' : 'hover:bg-white/20'}`}
             >
               Marquee
             </button>
             <button 
-              onClick={() => setActiveTab('blog')}
-              className={`px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-md transition-colors ${activeTab === 'blog' ? 'bg-white text-dark' : 'hover:bg-white/20'}`}
+              onClick={() => { setActiveTab('blog'); setIsEditing(null); setIsAdding(false); setImageFile(null); }}
+              className={`whitespace-nowrap px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-md transition-colors ${activeTab === 'blog' ? 'bg-white text-dark' : 'hover:bg-white/20'}`}
             >
               Blog
+            </button>
+            <button 
+              onClick={() => { setActiveTab('featured'); setIsEditing(null); setIsAdding(false); setImageFile(null); }}
+              className={`whitespace-nowrap px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-md transition-colors ${activeTab === 'featured' ? 'bg-white text-dark' : 'hover:bg-white/20'}`}
+            >
+              Featured
+            </button>
+            <button 
+              onClick={() => { setActiveTab('orders'); setIsEditing(null); setIsAdding(false); setImageFile(null); }}
+              className={`whitespace-nowrap px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-md transition-colors ${activeTab === 'orders' ? 'bg-white text-dark' : 'hover:bg-white/20'}`}
+            >
+              Orders
             </button>
           </div>
         </div>
@@ -267,7 +399,7 @@ export default function AdminPage() {
           <>
             <div className="flex justify-end mb-8">
               <button 
-                onClick={() => { setIsAdding(true); setIsEditing(null); setFormData({}); }}
+                onClick={() => { setIsAdding(true); setIsEditing(null); setFormData({}); setImageFile(null); }}
                 className="btn-primary flex items-center gap-2 px-6"
               >
                 <Plus size={20} /> Add New Product
@@ -285,7 +417,7 @@ export default function AdminPage() {
                 <h2 className="text-2xl font-black uppercase tracking-tighter">
                   {isEditing ? 'Edit Product' : 'Add New Product'}
                 </h2>
-                <button onClick={() => { setIsEditing(null); setIsAdding(false); }} className="p-2 hover:bg-border/20 rounded-full">
+                <button onClick={() => { setIsEditing(null); setIsAdding(false); setImageFile(null); }} className="p-2 hover:bg-border/20 rounded-full">
                   <X size={24} />
                 </button>
               </div>
@@ -362,6 +494,44 @@ export default function AdminPage() {
                       </select>
                     </div>
                   </div>
+
+                  <div className="flex items-center gap-4 pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={formData.badge?.includes('FEATURED') || false}
+                        onChange={e => {
+                          let badges = formData.badge ? formData.badge.split(',').map(b => b.trim()) : [];
+                          if (e.target.checked) {
+                            if (!badges.includes('FEATURED')) badges.push('FEATURED');
+                          } else {
+                            badges = badges.filter(b => b !== 'FEATURED');
+                          }
+                          setFormData({ ...formData, badge: badges.join(',') || null });
+                        }}
+                        className="w-4 h-4 text-primary focus:ring-primary border-border rounded"
+                      />
+                      <span className="text-sm font-bold">Feature on Homepage</span>
+                    </label>
+                    
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={formData.badge?.includes('SALE') || false}
+                        onChange={e => {
+                          let badges = formData.badge ? formData.badge.split(',').map(b => b.trim()) : [];
+                          if (e.target.checked) {
+                            if (!badges.includes('SALE')) badges.push('SALE');
+                          } else {
+                            badges = badges.filter(b => b !== 'SALE');
+                          }
+                          setFormData({ ...formData, badge: badges.join(',') || null });
+                        }}
+                        className="w-4 h-4 text-primary focus:ring-primary border-border rounded"
+                      />
+                      <span className="text-sm font-bold">Mark as Sale</span>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="space-y-6">
@@ -391,14 +561,17 @@ export default function AdminPage() {
 
                   <div>
                     <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-muted">Product Image</label>
-                    <div className="flex items-center gap-4">
-                      <div className="w-24 h-24 border-2 border-dashed border-border flex items-center justify-center overflow-hidden bg-white">
-                        {imageFile ? (
-                          <img src={URL.createObjectURL(imageFile)} className="w-full h-full object-cover" />
+                    <div className="flex flex-col gap-4">
+                      <div className="w-full aspect-square max-w-[240px] border-2 border-dashed border-border flex items-center justify-center overflow-hidden bg-white rounded-xl">
+                        {previewUrl ? (
+                          <img src={previewUrl} className="w-full h-full object-cover" />
                         ) : formData.image ? (
                           <img src={formData.image} className="w-full h-full object-cover" />
                         ) : (
-                          <Upload size={24} className="text-muted" />
+                          <div className="flex flex-col items-center text-muted">
+                            <Upload size={32} className="mb-2" />
+                            <span className="text-[10px] uppercase font-bold tracking-widest">No Image</span>
+                          </div>
                         )}
                       </div>
                       <div className="flex-grow">
@@ -411,7 +584,7 @@ export default function AdminPage() {
                         />
                         <label 
                           htmlFor="image-upload"
-                          className="inline-block border border-dark px-4 py-2 text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-dark hover:text-white transition-all"
+                          className="inline-block border border-dark px-6 py-3 text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-dark hover:text-white transition-all rounded-md"
                         >
                           Choose File
                         </label>
@@ -494,6 +667,13 @@ export default function AdminPage() {
                   </td>
                 </tr>
               ))}
+              {products.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="py-8 text-center text-muted font-medium">
+                    No products found. Click "Add New Product" to get started.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -548,7 +728,7 @@ export default function AdminPage() {
           <>
             <div className="flex justify-end mb-8">
               <button 
-                onClick={() => { setIsAdding(true); setIsEditing(null); setBlogFormData({}); }}
+                onClick={() => { setIsAdding(true); setIsEditing(null); setBlogFormData({}); setImageFile(null); }}
                 className="btn-primary flex items-center gap-2 px-6"
               >
                 <Plus size={20} /> Add New Post
@@ -567,7 +747,7 @@ export default function AdminPage() {
                     <h2 className="text-2xl font-black uppercase tracking-tighter">
                       {isEditing ? 'Edit Post' : 'Add New Post'}
                     </h2>
-                    <button onClick={() => { setIsEditing(null); setIsAdding(false); }} className="p-2 hover:bg-border/20 rounded-full">
+                    <button onClick={() => { setIsEditing(null); setIsAdding(false); setImageFile(null); }} className="p-2 hover:bg-border/20 rounded-full">
                       <X size={24} />
                     </button>
                   </div>
@@ -618,14 +798,17 @@ export default function AdminPage() {
                       </div>
                       <div>
                         <label className="block text-[10px] font-black uppercase tracking-widest mb-2 text-muted">Cover Image</label>
-                        <div className="flex items-center gap-4">
-                          <div className="w-24 h-24 border-2 border-dashed border-border flex items-center justify-center overflow-hidden bg-white">
-                            {imageFile ? (
-                              <img src={URL.createObjectURL(imageFile)} className="w-full h-full object-cover" />
+                        <div className="flex flex-col gap-4">
+                          <div className="w-full aspect-video max-w-[320px] border-2 border-dashed border-border flex items-center justify-center overflow-hidden bg-white rounded-xl">
+                            {previewUrl ? (
+                              <img src={previewUrl} className="w-full h-full object-cover" />
                             ) : blogFormData.image ? (
                               <img src={blogFormData.image} className="w-full h-full object-cover" />
                             ) : (
-                              <Upload size={24} className="text-muted" />
+                              <div className="flex flex-col items-center text-muted">
+                                <Upload size={32} className="mb-2" />
+                                <span className="text-[10px] uppercase font-bold tracking-widest">No Image</span>
+                              </div>
                             )}
                           </div>
                           <div className="flex-grow">
@@ -638,7 +821,7 @@ export default function AdminPage() {
                             />
                             <label 
                               htmlFor="blog-image-upload"
-                              className="inline-block border border-dark px-4 py-2 text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-dark hover:text-white transition-all"
+                              className="inline-block border border-dark px-6 py-3 text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-dark hover:text-white transition-all rounded-md"
                             >
                               Choose File
                             </label>
@@ -723,7 +906,276 @@ export default function AdminPage() {
             </div>
           </>
         )}
+        {activeTab === 'featured' && (
+          <>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <h2 className="text-2xl font-black uppercase tracking-tighter">Featured Carousel</h2>
+              <p className="text-sm text-muted font-medium">Select products to feature on the homepage carousel</p>
+            </div>
+            
+            <div className="bg-white border border-border rounded-xl overflow-x-auto shadow-sm">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="bg-background border-b border-border">
+                    <th className="p-4 font-bold uppercase tracking-widest text-[10px] text-muted">Product</th>
+                    <th className="p-4 font-bold uppercase tracking-widest text-[10px] text-muted">Price</th>
+                    <th className="p-4 font-bold uppercase tracking-widest text-[10px] text-muted">Category</th>
+                    <th className="p-4 font-bold uppercase tracking-widest text-[10px] text-muted text-center">Featured</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((product) => {
+                    const isFeatured = product.badge?.includes('FEATURED');
+                    return (
+                      <tr key={product.id} className="border-b border-border hover:bg-background/50 transition-colors">
+                        <td className="p-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-background rounded-md overflow-hidden shrink-0 border border-border">
+                              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm line-clamp-1">{product.name}</p>
+                              <p className="text-xs text-muted uppercase tracking-widest">{product.brand}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4 font-medium text-sm">${Number(product.price).toFixed(2)}</td>
+                        <td className="p-4 text-sm capitalize">{product.category}</td>
+                        <td className="p-4 text-center">
+                          <button
+                            onClick={async () => {
+                              try {
+                                const res = await fetch(`/api/products/${product.id}/featured`, {
+                                  method: 'PUT',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'x-admin-access': 'true'
+                                  },
+                                  body: JSON.stringify({ isFeatured: !isFeatured })
+                                });
+                                if (res.ok) {
+                                  fetchProducts();
+                                }
+                              } catch (e) {
+                                console.error('Error toggling featured status', e);
+                              }
+                            }}
+                            className={`w-12 h-6 rounded-full relative transition-colors ${isFeatured ? 'bg-primary' : 'bg-border'}`}
+                          >
+                            <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isFeatured ? 'left-7' : 'left-1'}`} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {products.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center text-muted font-medium">
+                        No products found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'orders' && (
+          <>
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-black uppercase tracking-tighter">Manage Orders</h2>
+            </div>
+            
+            <div className="bg-white border border-border rounded-xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-border/10 border-b border-border">
+                  <tr>
+                    <th className="text-left py-4 px-4 text-[10px] font-black uppercase tracking-widest text-muted">Order ID</th>
+                    <th className="text-left py-4 px-4 text-[10px] font-black uppercase tracking-widest text-muted">Date</th>
+                    <th className="text-left py-4 px-4 text-[10px] font-black uppercase tracking-widest text-muted">Customer</th>
+                    <th className="text-left py-4 px-4 text-[10px] font-black uppercase tracking-widest text-muted">Total</th>
+                    <th className="text-left py-4 px-4 text-[10px] font-black uppercase tracking-widest text-muted">Status</th>
+                    <th className="text-right py-4 px-4 text-[10px] font-black uppercase tracking-widest text-muted">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map((order) => (
+                    <tr key={order.id} className="border-b border-border hover:bg-border/5 transition-colors">
+                      <td className="py-4 px-4 font-bold">{order.id}</td>
+                      <td className="py-4 px-4 text-muted">{order.date}</td>
+                      <td className="py-4 px-4">
+                        <div className="font-bold">{order.customer?.firstName} {order.customer?.lastName}</div>
+                        <div className="text-xs text-muted">{order.customer?.email}</div>
+                      </td>
+                      <td className="py-4 px-4 font-black text-dark">${Number(order.total).toFixed(2)}</td>
+                      <td className="py-4 px-4">
+                        <span className={`px-2 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${
+                          order.status === 'Delivered' ? 'bg-green-100 text-green-800' : 
+                          order.status === 'Shipped' ? 'bg-blue-100 text-blue-800' : 
+                          order.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' : 
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-right flex items-center justify-end gap-2">
+                        <select 
+                          value={order.status}
+                          onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                          className="border border-border rounded px-2 py-1 text-xs font-bold uppercase tracking-widest bg-white"
+                        >
+                          <option value="Pending">Pending</option>
+                          <option value="Processing">Processing</option>
+                          <option value="Shipped">Shipped</option>
+                          <option value="Delivered">Delivered</option>
+                          <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <button 
+                          onClick={() => setSelectedOrder(order)}
+                          className="p-1 hover:bg-border/10 rounded transition-colors"
+                          title="View Details"
+                        >
+                          <Eye size={16} className="text-muted" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {orders.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-muted font-medium">
+                        No orders found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteConfirmation.isOpen && (
+          <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
+              onClick={() => setDeleteConfirmation({ isOpen: false, type: null, id: null })} 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white w-full max-w-md p-8 rounded-xl shadow-2xl"
+            >
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Trash2 size={32} className="text-red-500" />
+              </div>
+              <h3 className="text-2xl font-black uppercase tracking-tighter mb-4 text-center">Confirm Deletion</h3>
+              <p className="text-muted mb-8 text-center font-medium">
+                Are you sure you want to delete this {deleteConfirmation.type}? This action cannot be undone.
+              </p>
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setDeleteConfirmation({ isOpen: false, type: null, id: null })} 
+                  className="flex-1 py-3 border border-border font-bold uppercase tracking-widest text-xs hover:bg-border/10 transition-colors rounded-md"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmDelete} 
+                  className="flex-1 py-3 bg-red-600 text-white font-bold uppercase tracking-widest text-xs hover:bg-red-700 transition-colors rounded-md"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      {/* Order Details Modal */}
+      <AnimatePresence>
+        {selectedOrder && (
+          <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
+              onClick={() => setSelectedOrder(null)} 
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 rounded-xl shadow-2xl"
+            >
+              <button 
+                onClick={() => setSelectedOrder(null)}
+                className="absolute top-4 right-4 p-2 hover:bg-border/10 rounded-full transition-colors"
+              >
+                <X size={24} className="text-muted" />
+              </button>
+              
+              <h3 className="text-2xl font-black uppercase tracking-tighter mb-6">Order Details</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-muted mb-2">Order Information</h4>
+                  <div className="space-y-1 text-sm">
+                    <p><span className="font-bold">ID:</span> {selectedOrder.id}</p>
+                    <p><span className="font-bold">Date:</span> {selectedOrder.date}</p>
+                    <p><span className="font-bold">Status:</span> {selectedOrder.status}</p>
+                    <p><span className="font-bold">Total:</span> ${Number(selectedOrder.total).toFixed(2)}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-muted mb-2">Customer Information</h4>
+                  <div className="space-y-1 text-sm">
+                    <p><span className="font-bold">Name:</span> {selectedOrder.customer?.firstName} {selectedOrder.customer?.lastName}</p>
+                    <p><span className="font-bold">Email:</span> {selectedOrder.customer?.email}</p>
+                    <p><span className="font-bold">Address:</span> {selectedOrder.customer?.address}</p>
+                    <p><span className="font-bold">Location:</span> {selectedOrder.customer?.city}, {selectedOrder.customer?.state} {selectedOrder.customer?.zipCode}</p>
+                    <p><span className="font-bold">Country:</span> {selectedOrder.customer?.country}</p>
+                  </div>
+                </div>
+              </div>
+
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-muted mb-4">Order Items</h4>
+              <div className="space-y-4">
+                {selectedOrder.items?.map((item, index) => (
+                  <div key={index} className="flex gap-4 items-center bg-border/5 p-3 rounded-lg border border-border">
+                    <div className="w-16 h-16 bg-white shrink-0 rounded overflow-hidden border border-border">
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover"  />
+                    </div>
+                    <div className="flex-grow">
+                      <h5 className="font-bold text-sm line-clamp-1">{item.name}</h5>
+                      <p className="text-xs text-muted">Qty: {item.quantity}</p>
+                    </div>
+                    <div className="font-black">
+                      ${(Number(item.price) * Number(item.quantity)).toFixed(2)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-8 pt-6 border-t border-border flex justify-end">
+                <button 
+                  onClick={() => setSelectedOrder(null)} 
+                  className="px-8 py-3 bg-dark text-white font-bold uppercase tracking-widest text-xs hover:bg-black transition-colors rounded-md"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

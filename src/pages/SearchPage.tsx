@@ -1,43 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Star, Filter, ChevronRight, ChevronLeft, LayoutGrid, List, X } from 'lucide-react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { ChevronRight, Filter, ShoppingBag, LayoutGrid, List, X } from 'lucide-react';
+import { ProductCard, Product } from '../components/ProductCard';
 import { motion, AnimatePresence } from 'motion/react';
-import { useCart } from '../context/CartContext';
 
-import { ProductCard } from '../components/ProductCard';
-
-interface Product {
-  id: number;
-  name: string;
-  brand: string;
-  price: number;
-  salePrice: number | null;
-  image: string;
-  rating: number;
-  reviews: number;
-  badge: string | null;
-  category: string;
-}
-
-export default function CollectionPage() {
-  const { slug } = useParams();
-  const { addToCart } = useCart();
+export default function SearchPage() {
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get('q') || '';
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [visibleCount, setVisibleCount] = useState(9);
+  const [visibleCount, setVisibleCount] = useState(12);
   
   // Filter states
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('Featured');
-  
-  const title = slug ? slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'All Products';
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       try {
         const res = await fetch('/api/products');
         const data = await res.json();
@@ -48,26 +34,19 @@ export default function CollectionPage() {
           return;
         }
         
-        // Filter by category if slug matches a category
-        const categoryMap: Record<string, string> = {
-          'accessories': 'Accessories',
-          'print-material': 'Print Material',
-          'vehicle-decals': 'Vehicle Decals',
-          'velcro-bag': 'Velcro Bag',
-          'camper-storage': 'Camper Storage',
-          'wheels': 'Wheels',
-          'replacement-part': 'Replacement Part',
-          'rooftop-tent': 'Rooftop Tent',
-          'truck-suv-jeep-wheels': 'Truck, SUV, & Jeep Wheels'
-        };
-
-        const category = categoryMap[slug || ''];
-        if (category) {
-          setProducts(data.filter((p: Product) => p.category === category));
+        if (query) {
+          const lowerQuery = query.toLowerCase();
+          const filtered = data.filter((p: Product) => 
+            p.name.toLowerCase().includes(lowerQuery) || 
+            p.brand.toLowerCase().includes(lowerQuery) ||
+            p.category?.toLowerCase().includes(lowerQuery) ||
+            p.description?.toLowerCase().includes(lowerQuery)
+          );
+          setProducts(filtered);
         } else {
-          setProducts(data);
+          setProducts([]);
         }
-        setVisibleCount(9); // Reset visible count when category changes
+        setVisibleCount(12);
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {
@@ -76,7 +55,7 @@ export default function CollectionPage() {
     };
 
     fetchProducts();
-  }, [slug]);
+  }, [query]);
 
   const toggleBrand = (brand: string) => {
     setSelectedBrands(prev => 
@@ -102,30 +81,16 @@ export default function CollectionPage() {
 
   const visibleProducts = filteredProducts.slice(0, visibleCount);
   const handleLoadMore = () => {
-    setVisibleCount(prev => prev + 9);
+    setVisibleCount(prev => prev + 12);
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="bg-white min-h-screen pb-24">
-      {/* Breadcrumb */}
       <div className="bg-border/10 py-4">
-        <div className="container-custom flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[12px] uppercase font-bold tracking-widest text-muted">
-            <Link to="/" className="hover:text-dark">Home</Link>
-            <ChevronRight size={12} />
-            <span className="text-dark">{title}</span>
-          </div>
-          <button onClick={() => window.history.back()} className="text-[12px] uppercase font-bold tracking-widest text-muted hover:text-dark flex items-center gap-1">
-            <ChevronLeft size={16} /> Back
-          </button>
+        <div className="container-custom flex items-center gap-2 text-[12px] uppercase font-bold tracking-widest text-muted">
+          <Link to="/" className="hover:text-dark">Home</Link>
+          <ChevronRight size={12} />
+          <span className="text-dark">Search Results</span>
         </div>
       </div>
 
@@ -192,8 +157,10 @@ export default function CollectionPage() {
           <div className="flex-grow">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
               <div>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tighter mb-2 uppercase">{title}</h1>
-                <p className="text-muted text-sm font-medium">{products.length} Products</p>
+                <h1 className="text-3xl md:text-4xl font-black tracking-tighter mb-2 uppercase">Search Results</h1>
+                <p className="text-muted text-sm font-medium">
+                  {loading ? 'Searching...' : `${filteredProducts.length} results for "${query}"`}
+                </p>
               </div>
               
               <div className="flex items-center justify-between md:justify-end gap-4">
@@ -231,12 +198,11 @@ export default function CollectionPage() {
               </div>
             </div>
 
-            {products.length === 0 ? (
-              <div className="py-20 text-center border border-border rounded-xl bg-border/5">
-                <h2 className="text-2xl font-black uppercase tracking-tighter mb-4">No Products Found</h2>
-                <p className="text-muted font-medium">We couldn't find any products in this category.</p>
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
-            ) : (
+            ) : filteredProducts.length > 0 ? (
               <>
                 <div className={viewMode === 'grid' ? "grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10" : "flex flex-col gap-8"}>
                   {visibleProducts.map((product) => (
@@ -244,12 +210,12 @@ export default function CollectionPage() {
                   ))}
                 </div>
                 
-                {visibleCount < products.length && (
+                {visibleCount < filteredProducts.length && (
                   <div className="mt-20 flex flex-col items-center gap-6">
                     <div className="w-full max-w-xs h-1 bg-border rounded-full overflow-hidden">
-                      <div className="h-full bg-primary transition-all duration-500" style={{ width: `${(visibleCount / products.length) * 100}%` }} />
+                      <div className="h-full bg-primary transition-all duration-500" style={{ width: `${(visibleCount / filteredProducts.length) * 100}%` }} />
                     </div>
-                    <p className="text-xs text-muted font-bold uppercase tracking-widest">Showing {visibleCount} of {products.length} products</p>
+                    <p className="text-xs text-muted font-bold uppercase tracking-widest">Showing {visibleCount} of {filteredProducts.length} products</p>
                     <button 
                       onClick={handleLoadMore}
                       className="border-2 border-dark px-16 py-4 font-black uppercase tracking-widest hover:bg-dark hover:text-white transition-all duration-300"
@@ -259,6 +225,15 @@ export default function CollectionPage() {
                   </div>
                 )}
               </>
+            ) : (
+              <div className="text-center py-20 border-2 border-dashed border-border rounded-xl">
+                <ShoppingBag size={48} className="mx-auto text-muted mb-6" />
+                <h2 className="text-2xl font-black uppercase tracking-tighter mb-4">No Products Found</h2>
+                <p className="text-muted font-medium mb-8">We couldn't find any products matching your criteria.</p>
+                <Link to="/collections" className="btn-primary px-8">
+                  Shop All Products
+                </Link>
+              </div>
             )}
           </div>
         </div>

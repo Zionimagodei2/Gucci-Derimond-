@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, User, ShoppingCart, Star, LogOut, Menu } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import MobileMenu from './MobileMenu';
@@ -9,6 +9,16 @@ export default function Header() {
   const { setIsCartOpen, cartCount } = useCart();
   const { user, openLogin, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
+  };
 
   return (
     <header className="bg-dark text-white h-[70px] flex items-center sticky top-0 z-50">
@@ -40,16 +50,18 @@ export default function Header() {
 
         {/* Center: Search */}
         <div className="relative hidden lg:block">
-          <div className="relative">
+          <form onSubmit={handleSearch} className="relative">
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search mods, parts, accessories..."
               className="w-full bg-white/10 border border-white/20 rounded-full py-2.5 pl-5 pr-12 text-sm focus:outline-none focus:bg-white focus:text-dark transition-all placeholder:text-white/40"
             />
-            <div className="absolute right-1 top-1 bottom-1 w-10 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-hover transition-colors">
+            <button type="submit" className="absolute right-1 top-1 bottom-1 w-10 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-hover transition-colors">
               <Search size={18} className="text-white" />
-            </div>
-          </div>
+            </button>
+          </form>
         </div>
 
         {/* Right: Icons */}
@@ -59,18 +71,18 @@ export default function Header() {
               <div className="flex flex-col items-end">
                 <span className="text-[10px] font-black uppercase tracking-widest text-primary hidden md:block leading-none mb-1">Hi, {user.name.split(' ')[0]}</span>
                 {user.isAdmin && (
-                  <Link to="/admin" className="text-[8px] font-black uppercase tracking-[0.2em] text-white/60 hover:text-primary transition-colors leading-none">
-                    Admin Dashboard
+                  <Link to="/admin" className="text-[10px] sm:text-[8px] font-black uppercase tracking-[0.2em] text-primary sm:text-white/60 hover:text-primary transition-colors leading-none bg-primary/10 sm:bg-transparent px-2 py-1 sm:p-0 rounded-sm sm:rounded-none">
+                    Admin
                   </Link>
                 )}
               </div>
-              <button 
-                onClick={logout}
+              <Link 
+                to="/profile"
                 className="hover:text-primary transition-colors flex items-center gap-1 group"
-                title="Logout"
+                title="My Profile"
               >
-                <LogOut size={20} />
-              </button>
+                <User size={22} />
+              </Link>
             </div>
           ) : (
             <button 
@@ -81,13 +93,23 @@ export default function Header() {
             </button>
           )}
           
-          <Link to="/pages/rewards" className="hover:text-primary transition-colors flex items-center gap-1 group">
-            <Star size={22} className="group-hover:fill-primary transition-all" />
-            <div className="flex flex-col leading-none hidden lg:flex">
-              <span className="text-[10px] font-bold uppercase">Marco</span>
-              <span className="text-[10px] font-bold uppercase text-primary">Points</span>
-            </div>
-          </Link>
+          {user ? (
+            <Link to="/pages/rewards" className="hover:text-primary transition-colors flex items-center gap-1 group">
+              <Star size={22} className="group-hover:fill-primary transition-all" />
+              <div className="flex flex-col leading-none hidden lg:flex">
+                <span className="text-[10px] font-bold uppercase">Marco</span>
+                <span className="text-[10px] font-bold uppercase text-primary">Points</span>
+              </div>
+            </Link>
+          ) : (
+            <button onClick={openLogin} className="hover:text-primary transition-colors flex items-center gap-1 group">
+              <Star size={22} className="group-hover:fill-primary transition-all" />
+              <div className="flex flex-col leading-none hidden lg:flex text-left">
+                <span className="text-[10px] font-bold uppercase">Marco</span>
+                <span className="text-[10px] font-bold uppercase text-primary">Points</span>
+              </div>
+            </button>
+          )}
           <button 
             onClick={() => setIsCartOpen(true)}
             className="hover:text-primary transition-colors relative group"

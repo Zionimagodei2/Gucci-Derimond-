@@ -7,12 +7,12 @@ export default function SpotlightProduct() {
   const { addToCart } = useCart();
   
   const product = {
-    id: 10,
-    name: "Marco Tac Rogue Front Bumper (2016-2023)",
-    price: 1599,
-    salePrice: 1399,
-    image: "https://picsum.photos/seed/spotlight/1200/800",
-    description: "The ultimate front-end protection for your Tacoma. Lightweight, durable, and winch-ready. Designed for maximum approach angle and aggressive styling."
+    id: 8354728509626,
+    name: "Evolution V2 Standard - Rooftop Tent",
+    price: 2762.50,
+    salePrice: null,
+    image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/fsr-evo-v2-rooftop-tent.webp?v=1772719766",
+    description: "The Evolution V2 Standard Rooftop Tent is the ultimate camping companion. Lightweight, durable, and ready for any adventure. Designed for maximum comfort and aggressive styling."
   };
 
   return (
@@ -24,7 +24,7 @@ export default function SpotlightProduct() {
               src={product.image} 
               alt={product.name}
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000"
-              referrerPolicy="no-referrer"
+              
             />
           </div>
           
@@ -38,13 +38,19 @@ export default function SpotlightProduct() {
             </p>
             
             <div className="flex items-center gap-6 mb-10">
-              <span className="text-3xl font-black text-white">${product.salePrice}</span>
-              <span className="text-xl text-crossed line-through font-medium">${product.price}</span>
+              {product.salePrice ? (
+                <>
+                  <span className="text-3xl font-black text-white">${product.salePrice.toFixed(2)}</span>
+                  <span className="text-xl text-crossed line-through font-medium">${product.price.toFixed(2)}</span>
+                </>
+              ) : (
+                <span className="text-3xl font-black text-white">${product.price.toFixed(2)}</span>
+              )}
             </div>
             
             <div className="flex flex-wrap gap-4">
               <button 
-                onClick={() => addToCart({ ...product, price: product.salePrice, quantity: 1 })}
+                onClick={() => addToCart({ ...product, price: product.salePrice || product.price, quantity: 1 })}
                 className="btn-primary flex items-center gap-3 px-10"
               >
                 <ShoppingBag size={20} /> Add to Cart

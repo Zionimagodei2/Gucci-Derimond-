@@ -1,6 +1,7 @@
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ChevronRight, Info, Shield, Truck, FileText, HelpCircle, Mail, MapPin, Phone, Users } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ChevronRight, Info, Shield, Truck, FileText, HelpCircle, Mail, MapPin, Users } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const pageContent: Record<string, { title: string, icon: any, content: React.ReactNode }> = {
   'about-us': {
@@ -23,9 +24,8 @@ const pageContent: Record<string, { title: string, icon: any, content: React.Rea
         <ul className="list-disc pl-6 space-y-2">
           <li><strong>Sign Up Bonus:</strong> 50 Points just for joining.</li>
           <li><strong>Birthday Reward:</strong> 100 Points on your special day.</li>
-          <li><strong>Refer a Friend:</strong> Give $10, Get $10 in points.</li>
         </ul>
-        <p>Redeem points for exclusive discounts, free gear, and early access to new releases. 100 Points = $10 Off your next order.</p>
+        <p>Redeem points for free gear and early access to new releases.</p>
       </div>
     )
   },
@@ -34,7 +34,7 @@ const pageContent: Record<string, { title: string, icon: any, content: React.Rea
     icon: Mail,
     content: (
       <div className="space-y-6">
-        <p>Have questions about a build or a specific part? Our team of experts is here to help. Reach out to us via email, phone, or visit our showroom.</p>
+        <p>Have questions about a build or a specific part? Our team of experts is here to help. Reach out to us via email or visit our showroom.</p>
         <p>We aim to respond to all inquiries within 24 hours during regular business days.</p>
       </div>
     )
@@ -124,8 +124,21 @@ const pageContent: Record<string, { title: string, icon: any, content: React.Rea
 
 export default function ContentPage() {
   const { slug } = useParams();
+  const { user, openLogin } = useAuth();
+  const navigate = useNavigate();
   
   let pageKey = slug || '';
+  
+  useEffect(() => {
+    if (pageKey === 'rewards' && !user) {
+      navigate('/');
+      openLogin();
+    }
+  }, [pageKey, user, navigate, openLogin]);
+
+  if (pageKey === 'rewards' && !user) {
+    return null; // Don't render anything while redirecting
+  }
   
   const page = pageContent[pageKey] || { title: 'Page Not Found', icon: Info, content: 'The page you are looking for does not exist.' };
   const Icon = page.icon;
@@ -157,16 +170,11 @@ export default function ContentPage() {
             </div>
 
             {slug === 'contact-us' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
                 <div className="p-8 bg-border/10 rounded-xl text-center">
                   <MapPin size={32} className="text-primary mx-auto mb-4" />
                   <h4 className="font-black uppercase tracking-widest text-sm mb-2">Visit Us</h4>
                   <p className="text-xs text-muted">123 Offroad Way<br />Adventure City, ST 12345</p>
-                </div>
-                <div className="p-8 bg-border/10 rounded-xl text-center">
-                  <Phone size={32} className="text-primary mx-auto mb-4" />
-                  <h4 className="font-black uppercase tracking-widest text-sm mb-2">Call Us</h4>
-                  <p className="text-xs text-muted">(555) 123-4567<br />Mon-Fri: 9am - 6pm</p>
                 </div>
                 <div className="p-8 bg-border/10 rounded-xl text-center">
                   <Mail size={32} className="text-primary mx-auto mb-4" />

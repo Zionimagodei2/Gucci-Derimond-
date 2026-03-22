@@ -28,6 +28,10 @@ import ScrollToTop from './components/ScrollToTop';
 
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
+import SearchPage from './pages/SearchPage';
+import ProfilePage from './pages/ProfilePage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderHistoryPage from './pages/OrderHistoryPage';
 
 function HomePage() {
   return (
@@ -53,7 +57,7 @@ export default function App() {
       <CartProvider>
         <Router>
           <ScrollToTop />
-          <div className="flex flex-col min-h-screen">
+          <div className="flex flex-col min-h-screen overflow-x-hidden">
             <AnnouncementBar />
             <Header />
             <Navigation />
@@ -69,6 +73,10 @@ export default function App() {
                 <Route path="/policies/:slug" element={<ContentPage />} />
                 <Route path="/blogs/news" element={<BlogPage />} />
                 <Route path="/blogs/news/:id" element={<BlogPostPage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/profile/orders" element={<OrderHistoryPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
                 {/* Placeholder routes for other pages */}
                 <Route path="*" element={<HomePage />} />
               </Routes>

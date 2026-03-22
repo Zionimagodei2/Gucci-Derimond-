@@ -27,7 +27,7 @@ export default function Newsletter() {
           
           <span className="text-primary text-[12px] font-black uppercase tracking-[0.4em] mb-4 block">Join the inner circle</span>
           <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase mb-6 leading-none">
-            Get 10% Off Your First Order
+            Stay Updated on New Drops
           </h2>
           <p className="text-crossed text-lg mb-12 max-w-2xl mx-auto leading-relaxed">
             Be the first to know about new product drops, exclusive sales, and expert build guides. Join 50,000+ Tacoma enthusiasts.
@@ -37,7 +37,7 @@ export default function Newsletter() {
             <div className="bg-white/5 border border-primary/20 p-12 rounded-sm max-w-2xl mx-auto animate-in fade-in zoom-in duration-500">
               <CheckCircle2 size={64} className="text-primary mx-auto mb-6" />
               <h3 className="text-2xl font-black uppercase tracking-tighter mb-4">You're in the crew!</h3>
-              <p className="text-crossed text-sm uppercase tracking-widest font-bold">Check your inbox for your 10% off code.</p>
+              <p className="text-crossed text-sm uppercase tracking-widest font-bold">Check your inbox for the latest updates.</p>
             </div>
           ) : (
             <form className="flex flex-col md:flex-row gap-4 max-w-2xl mx-auto mb-8" onSubmit={handleSubmit}>

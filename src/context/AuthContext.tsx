@@ -1,10 +1,13 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '../lib/supabase';
 
 interface User {
+  id: string;
   email: string;
   name: string;
   isAdmin?: boolean;
   points?: number;
+  avatar_url?: string;
 }
 
 interface AuthContextType {
@@ -15,8 +18,10 @@ interface AuthContextType {
   openJoin: () => void;
   openForgot: () => void;
   closeAuthModal: () => void;
-  login: (email: string, name: string, isAdmin?: boolean, points?: number) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
+  addPoints: (amount: number) => void;
+  removePoints: (amount: number) => void;
+  updateUserContext: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +30,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'join' | 'forgot'>('login');
+
+  const loadUserPoints = (userId: string) => {
+    const storedPoints = localStorage.getItem(`points_${userId}`);
+    return storedPoints ? parseInt(storedPoints, 10) : 50; // Default 50 points for new users
+  };
+
+  const addPoints = (amount: number) => {
+    setUser(prev => {
+      if (!prev) return prev;
+      const newPoints = (prev.points || 0) + amount;
+      localStorage.setItem(`points_${prev.id}`, newPoints.toString());
+      return { ...prev, points: newPoints };
+    });
+  };
+
+  const removePoints = (amount: number) => {
+    setUser(prev => {
+      if (!prev) return prev;
+      const newPoints = Math.max(0, (prev.points || 0) - amount);
+      localStorage.setItem(`points_${prev.id}`, newPoints.toString());
+      return { ...prev, points: newPoints };
+    });
+  };
+
+  useEffect(() => {
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.full_name || 'User',
+          avatar_url: session.user.user_metadata?.avatar_url,
+          isAdmin: session.user.email === 'gucciwebsite20@gmail.com', // Simple admin check
+          points: loadUserPoints(session.user.id),
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    // Listen for changes on auth state (logged in, signed out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.full_name || 'User',
+          avatar_url: session.user.user_metadata?.avatar_url,
+          isAdmin: session.user.email === 'gucciwebsite20@gmail.com',
+          points: loadUserPoints(session.user.id),
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const openLogin = () => {
     setAuthMode('login');
@@ -45,13 +109,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthModalOpen(false);
   };
 
-  const login = (email: string, name: string, isAdmin: boolean = false, points: number = 150) => {
-    setUser({ email, name, isAdmin, points });
-    closeAuthModal();
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
   };
 
-  const logout = () => {
-    setUser(null);
+  const updateUserContext = (updates: Partial<User>) => {
+    setUser(prev => prev ? { ...prev, ...updates } : null);
   };
 
   return (
@@ -63,8 +127,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       openJoin, 
       openForgot,
       closeAuthModal, 
-      login, 
-      logout 
+      logout,
+      addPoints,
+      removePoints,
+      updateUserContext
     }}>
       {children}
     </AuthContext.Provider>

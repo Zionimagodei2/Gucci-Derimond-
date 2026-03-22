@@ -6,27 +6,27 @@ import VideoModal from './VideoModal';
 
 const slides = [
   {
-    image: "https://picsum.photos/seed/hero1/1920/1080",
-    title: "THE NEXT GEN IS HERE",
-    subtitle: "2024+ Tacoma Mods & Accessories",
-    cta: "SHOP 4TH GEN",
-    link: "/collections/4th-gen-tacoma",
-    accent: "text-primary"
-  },
-  {
-    image: "https://picsum.photos/seed/hero2/1920/1080",
-    title: "LIGHT UP THE TRAIL",
-    subtitle: "Premium LED Lighting Solutions",
-    cta: "SHOP LIGHTING",
-    link: "/collections/lighting",
-    accent: "text-white"
-  },
-  {
-    image: "https://picsum.photos/seed/hero3/1920/1080",
+    image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/fsr-evo-v2-rooftop-tent.webp?v=1772719766",
     title: "BUILT FOR ADVENTURE",
     subtitle: "Overland Gear & Camping Essentials",
     cta: "EXPLORE GEAR",
     link: "/collections/camping-overland",
+    accent: "text-primary"
+  },
+  {
+    image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Hyperdrive_gloss_bronze_6lug_flowformed_b0fb0b87-fa9b-44ba-bbf0-ae43241a1d36.png?v=1772559073",
+    title: "UPGRADE YOUR RIDE",
+    subtitle: "Premium Wheels & Accessories",
+    cta: "SHOP WHEELS",
+    link: "/collections/wheels",
+    accent: "text-white"
+  },
+  {
+    image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/modular-velcro-panel_a8ff721e-d9d3-4b59-aa16-d28b268675c1.jpg?v=1773785161",
+    title: "ORGANIZE YOUR GEAR",
+    subtitle: "Modular Velcro Panels & Storage",
+    cta: "SHOP STORAGE",
+    link: "/collections/accessories",
     accent: "text-primary"
   }
 ];
@@ -86,15 +86,6 @@ export default function Hero() {
                 <Link to={slides[current].link} className="btn-primary px-12 py-4 text-lg">
                   {slides[current].cta}
                 </Link>
-                <button 
-                  onClick={() => setIsVideoModalOpen(true)}
-                  className="flex items-center gap-3 font-black uppercase tracking-widest hover:text-primary transition-colors group"
-                >
-                  <div className="w-12 h-12 rounded-full border border-white/30 flex items-center justify-center group-hover:border-primary group-hover:bg-primary transition-all">
-                    <Play size={20} className="fill-current ml-1" />
-                  </div>
-                  Watch Build
-                </button>
               </div>
             </motion.div>
           </div>

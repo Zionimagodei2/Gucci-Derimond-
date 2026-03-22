@@ -5,77 +5,71 @@ import { motion, AnimatePresence } from 'motion/react';
 
 const navItems = [
   { 
-    name: 'SHOP BY VEHICLE', 
-    path: '/collections/shop-by-vehicle',
+    name: 'ACCESSORIES', 
+    path: '/collections/accessories',
     subItems: [
-      { name: '4th Gen (2024-2026)', path: '/collections/4th-gen-tacoma' },
-      { name: '3rd Gen (2016-2023)', path: '/collections/3rd-gen-tacoma' },
-      { name: '2nd Gen (2005-2015)', path: '/collections/2nd-gen-tacoma' },
-      { name: '1st Gen (1996-2004)', path: '/collections/1st-gen-tacoma' },
+      { name: 'All Accessories', path: '/collections/accessories' },
+      { name: 'Velcro Bags', path: '/collections/velcro-bag' },
+      { name: 'Camper Storage', path: '/collections/camper-storage' },
+    ],
+    featuredImages: [
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/modular-velcro-panel_a8ff721e-d9d3-4b59-aa16-d28b268675c1.jpg?v=1773785161",
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/5X8A2262_66e62e7c-b268-48cc-b9f5-93d51cbeeb78.jpg?v=1772859285",
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/5X8A2262.jpg?v=1772859284"
     ]
   },
   { 
     name: 'EXTERIOR', 
     path: '/collections/exterior',
     subItems: [
-      { name: 'Roof Racks', path: '/collections/roof-racks' },
-      { name: 'Bed Racks', path: '/collections/bed-racks' },
-      { name: 'Bumpers', path: '/collections/bumpers' },
-      { name: 'Grilles', path: '/collections/grilles' },
-      { name: 'Skid Plates', path: '/collections/skid-plates' },
-      { name: 'Suspension', path: '/collections/suspension' },
-      { name: 'Wheels', path: '/collections/wheels' },
-      { name: 'Wheel Spacers', path: '/collections/wheel-spacers' },
+      { name: 'Vehicle Decals', path: '/collections/vehicle-decals' },
+      { name: 'Replacement Parts', path: '/collections/replacement-part' },
+    ],
+    featuredImages: [
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Rav4_PillarDecals_Mockup_AllBlack.png?v=1773156102",
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Rav4_PillarDecals_Mockup_AllBlack.png?v=1773156102",
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Rav4_PillarDecals_Mockup_AllBlack.png?v=1773156102"
     ]
   },
   { 
-    name: 'INTERIOR', 
-    path: '/collections/interior',
+    name: 'WHEELS', 
+    path: '/collections/wheels',
     subItems: [
-      { name: 'Seat Covers', path: '/collections/seat-covers' },
-      { name: 'Floor Mats', path: '/collections/floor-mats' },
-      { name: 'Shift Knobs', path: '/collections/shift-knobs' },
-      { name: 'Console Organizers', path: '/collections/console-organizers' },
-      { name: 'Phone Mounts', path: '/collections/phone-mounts' },
-    ]
-  },
-  { 
-    name: 'LIGHTING', 
-    path: '/collections/lighting',
-    subItems: [
-      { name: 'LED Light Bars', path: '/collections/led-light-bars' },
-      { name: 'Ditch Lights', path: '/collections/ditch-lights' },
-      { name: 'Fang Lights', path: '/collections/fang-lights' },
-      { name: 'Tail Lights', path: '/collections/tail-lights' },
-      { name: 'Fog Lights', path: '/collections/fog-lights' },
-      { name: 'Headlights', path: '/collections/headlights' },
+      { name: 'All Wheels', path: '/collections/wheels' },
+      { name: 'Truck, SUV, & Jeep Wheels', path: '/collections/truck-suv-jeep-wheels' },
+    ],
+    featuredImages: [
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Hyperdrive_gloss_bronze_6lug_flowformed_b0fb0b87-fa9b-44ba-bbf0-ae43241a1d36.png?v=1772559073",
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Hyperdrive_gloss_bronze_6lug_flowformed_b0fb0b87-fa9b-44ba-bbf0-ae43241a1d36.png?v=1772559073",
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Hyperdrive_gloss_bronze_6lug_flowformed_b0fb0b87-fa9b-44ba-bbf0-ae43241a1d36.png?v=1772559073"
     ]
   },
   { 
     name: 'CAMPING & OVERLAND', 
     path: '/collections/camping-overland',
     subItems: [
-      { name: 'Rooftop Tents', path: '/collections/rooftop-tents' },
-      { name: 'Awnings', path: '/collections/awnings' },
-      { name: 'Recovery Gear', path: '/collections/recovery-gear' },
-      { name: 'Portable Power & Solar', path: '/collections/portable-power-solar' },
-      { name: 'Coolers', path: '/collections/coolers' },
+      { name: 'Rooftop Tents', path: '/collections/rooftop-tent' },
+    ],
+    featuredImages: [
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/fsr-evo-v2-rooftop-tent.webp?v=1772719766",
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/fsr-evo-v2-rooftop-tent.webp?v=1772719766",
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/fsr-evo-v2-rooftop-tent.webp?v=1772719766"
     ]
   },
   { 
-    name: 'BRANDS', 
-    path: '/collections/brands',
+    name: 'APPAREL & PRINT', 
+    path: '/collections/print-material',
     subItems: [
-      { name: 'Prinsu', path: '/collections/prinsu' },
-      { name: 'Baja Designs', path: '/collections/baja-designs' },
-      { name: 'Morimoto', path: '/collections/morimoto' },
-      { name: 'ROAM', path: '/collections/roam' },
-      { name: 'OVS', path: '/collections/ovs' },
-      { name: 'ARB', path: '/collections/arb' },
+      { name: 'Print Material', path: '/collections/print-material' },
+    ],
+    featuredImages: [
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/57e3bfa1-7c73-4d7f-9a92-a0e225543091.webp?v=1773697888",
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/57e3bfa1-7c73-4d7f-9a92-a0e225543091.webp?v=1773697888",
+      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/57e3bfa1-7c73-4d7f-9a92-a0e225543091.webp?v=1773697888"
     ]
   },
   { name: 'SALE', path: '/collections/sale', color: 'text-primary' },
-  { name: 'MARCO TALK', path: '/blogs/news' },
+  { name: 'BLOG', path: '/blogs/news' },
 ];
 
 export default function Navigation() {
@@ -94,15 +88,18 @@ export default function Navigation() {
             >
               <Link
                 to={item.path}
-                className={`text-[13px] font-bold uppercase tracking-[0.08em] hover:text-primary transition-colors flex items-center gap-1 ${item.color || 'text-dark'}`}
+                className={`relative h-full text-[13px] font-bold uppercase tracking-[0.08em] hover:text-primary transition-colors flex items-center gap-1 ${item.color || 'text-dark'}`}
               >
                 {item.name}
                 {item.subItems && <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300" />}
+                {/* Simple underline on hover */}
+                <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
               </Link>
               
               <AnimatePresence>
                 {item.subItems && hoveredItem === item.name && (
                   <motion.div
+                    key={item.name}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
@@ -130,13 +127,13 @@ export default function Navigation() {
                         </div>
                         <div className="col-span-3 grid grid-cols-3 gap-4">
                           {/* Featured images in mega menu */}
-                          {[1, 2, 3].map((i) => (
+                          {(item.featuredImages || []).map((imgSrc, i) => (
                             <div key={i} className="relative aspect-video overflow-hidden group/img">
                               <img 
-                                src={`https://picsum.photos/seed/nav${item.name}${i}/600/400`} 
+                                src={imgSrc} 
                                 alt="Featured" 
                                 className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-700"
-                                referrerPolicy="no-referrer"
+                                
                               />
                               <div className="absolute inset-0 bg-black/20 group-hover/img:bg-black/40 transition-colors" />
                               <div className="absolute bottom-4 left-4">
@@ -152,9 +149,6 @@ export default function Navigation() {
                   </motion.div>
                 )}
               </AnimatePresence>
-
-              {/* Simple underline on hover */}
-              <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
             </li>
           ))}
         </ul>

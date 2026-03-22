@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ChevronRight, Search, User, Star, ShoppingBag, Facebook, Instagram, Twitter } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface MobileMenuProps {
@@ -10,18 +10,69 @@ interface MobileMenuProps {
 }
 
 const menuItems = [
-  { name: 'Shop By Vehicle', path: '/collections/shop-by-vehicle' },
-  { name: 'Exterior', path: '/collections/exterior' },
-  { name: 'Interior', path: '/collections/interior' },
-  { name: 'Lighting', path: '/collections/lighting' },
-  { name: 'Camping & Overland', path: '/collections/camping-overland' },
-  { name: 'Brands', path: '/collections/brands' },
+  { 
+    name: 'Accessories', 
+    path: '/collections/accessories',
+    subItems: [
+      { name: 'All Accessories', path: '/collections/accessories' },
+      { name: 'Velcro Bags', path: '/collections/velcro-bag' },
+      { name: 'Camper Storage', path: '/collections/camper-storage' },
+    ]
+  },
+  { 
+    name: 'Exterior', 
+    path: '/collections/exterior',
+    subItems: [
+      { name: 'Vehicle Decals', path: '/collections/vehicle-decals' },
+      { name: 'Replacement Parts', path: '/collections/replacement-part' },
+    ]
+  },
+  { 
+    name: 'Wheels', 
+    path: '/collections/wheels',
+    subItems: [
+      { name: 'All Wheels', path: '/collections/wheels' },
+      { name: 'Truck, SUV, & Jeep Wheels', path: '/collections/truck-suv-jeep-wheels' },
+    ]
+  },
+  { 
+    name: 'Camping & Overland', 
+    path: '/collections/camping-overland',
+    subItems: [
+      { name: 'Rooftop Tents', path: '/collections/rooftop-tent' },
+    ]
+  },
+  { 
+    name: 'Apparel & Print', 
+    path: '/collections/print-material',
+    subItems: [
+      { name: 'Print Material', path: '/collections/print-material' },
+    ]
+  },
   { name: 'Sale', path: '/collections/sale', color: 'text-primary' },
-  { name: 'Marco Talk', path: '/blogs/news' },
+  { name: 'Blog', path: '/blogs/news' },
 ];
 
 export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const { user, openLogin } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+      onClose();
+    }
+  };
+
+  const toggleExpand = (name: string) => {
+    setExpandedItems(prev => 
+      prev.includes(name) ? prev.filter(item => item !== name) : [...prev, name]
+    );
+  };
 
   return (
     <AnimatePresence>
@@ -61,42 +112,94 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             </div>
 
             <div className="p-6 border-b border-border">
-              <div className="relative">
+              <form onSubmit={handleSearch} className="relative">
                 <input 
                   type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search products..."
                   className="w-full bg-border/20 border border-border rounded-lg py-3 pl-4 pr-12 text-sm focus:outline-none focus:border-primary"
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-muted">
+                <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors">
                   <Search size={20} />
                 </button>
-              </div>
+              </form>
             </div>
 
             <div className="flex-grow overflow-y-auto">
               <ul className="p-6 space-y-1">
                 {menuItems.map((item) => (
-                  <li key={item.name}>
-                    <Link 
-                      to={item.path} 
-                      onClick={onClose}
-                      className={`flex items-center justify-between py-4 border-b border-border/50 text-sm font-black uppercase tracking-widest ${item.color || 'text-dark'}`}
-                    >
-                      {item.name}
-                      <ChevronRight size={16} className="text-muted" />
-                    </Link>
+                  <li key={item.name} className="border-b border-border/50">
+                    <div className="flex items-center justify-between py-4">
+                      <Link 
+                        to={item.path} 
+                        onClick={onClose}
+                        className={`text-sm font-black uppercase tracking-widest flex-grow ${item.color || 'text-dark'}`}
+                      >
+                        {item.name}
+                      </Link>
+                      {item.subItems && (
+                        <button 
+                          onClick={() => toggleExpand(item.name)}
+                          className="p-2 -mr-2 text-muted hover:text-primary transition-colors"
+                        >
+                          <ChevronRight 
+                            size={16} 
+                            className={`transition-transform duration-300 ${expandedItems.includes(item.name) ? 'rotate-90' : ''}`} 
+                          />
+                        </button>
+                      )}
+                      {!item.subItems && (
+                        <ChevronRight size={16} className="text-muted" />
+                      )}
+                    </div>
+                    {item.subItems && (
+                      <AnimatePresence>
+                        {expandedItems.includes(item.name) && (
+                          <motion.ul
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden bg-border/5 rounded-lg mb-2"
+                          >
+                            {item.subItems.map(sub => (
+                              <li key={sub.name}>
+                                <Link
+                                  to={sub.path}
+                                  onClick={onClose}
+                                  className="block py-3 px-4 text-xs font-bold text-muted hover:text-primary hover:bg-border/10 transition-colors uppercase tracking-wider"
+                                >
+                                  {sub.name}
+                                </Link>
+                              </li>
+                            ))}
+                          </motion.ul>
+                        )}
+                      </AnimatePresence>
+                    )}
                   </li>
                 ))}
               </ul>
 
               <div className="p-6 grid grid-cols-2 gap-4">
-                <button 
-                  onClick={() => { onClose(); openLogin(); }}
-                  className="flex flex-col items-center justify-center p-4 bg-border/10 rounded-xl gap-2 hover:bg-border/20 transition-colors"
-                >
-                  <User size={24} className="text-primary" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">{user ? (user.isAdmin ? 'Admin' : 'Account') : 'Sign In'}</span>
-                </button>
+                {user ? (
+                  <Link 
+                    to="/profile"
+                    onClick={onClose}
+                    className="flex flex-col items-center justify-center p-4 bg-border/10 rounded-xl gap-2 hover:bg-border/20 transition-colors"
+                  >
+                    <User size={24} className="text-primary" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">{user.isAdmin ? 'Admin' : 'Account'}</span>
+                  </Link>
+                ) : (
+                  <button 
+                    onClick={() => { onClose(); openLogin(); }}
+                    className="flex flex-col items-center justify-center p-4 bg-border/10 rounded-xl gap-2 hover:bg-border/20 transition-colors"
+                  >
+                    <User size={24} className="text-primary" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Sign In</span>
+                  </button>
+                )}
                 {user?.isAdmin ? (
                   <Link 
                     to="/admin" 
@@ -106,7 +209,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     <ShoppingBag size={24} className="text-primary" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Dashboard</span>
                   </Link>
-                ) : (
+                ) : user ? (
                   <Link 
                     to="/pages/rewards" 
                     onClick={onClose}
@@ -115,6 +218,17 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     <Star size={24} className="text-primary" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Rewards</span>
                   </Link>
+                ) : (
+                  <button 
+                    onClick={() => {
+                      onClose();
+                      openLogin();
+                    }}
+                    className="flex flex-col items-center justify-center p-4 bg-border/10 rounded-xl gap-2 hover:bg-border/20 transition-colors"
+                  >
+                    <Star size={24} className="text-primary" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Rewards</span>
+                  </button>
                 )}
               </div>
             </div>
@@ -127,7 +241,6 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
                   </svg>
                 </a>
-                <a href="#" className="hover:text-primary transition-colors"><Facebook size={20} /></a>
               </div>
               <p className="text-[10px] text-center text-crossed uppercase tracking-[0.2em] font-bold">
                 © 2025 Marco Tac Life

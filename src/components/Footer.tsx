@@ -1,8 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram, Facebook, Twitter, Youtube, Pin as Pinterest, MapPin, Phone, Mail, ChevronRight, Star } from 'lucide-react';
+import { Instagram, Facebook, Twitter, Youtube, Pin as Pinterest, MapPin, Mail, ChevronRight, Star, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Footer() {
+  const [email, setEmail] = useState('');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const { user, openLogin } = useAuth();
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      setIsSubscribed(true);
+      setEmail('');
+    }
+  };
+
   return (
     <footer className="bg-dark text-white pt-24 pb-12">
       <div className="container-custom">
@@ -31,10 +44,6 @@ export default function Footer() {
                 <span>123 Offroad Way, Adventure City, ST 12345</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-crossed">
-                <Phone size={18} className="text-primary" />
-                <span>(555) 123-4567</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-crossed">
                 <Mail size={18} className="text-primary" />
                 <span>support@marcotaclife.com</span>
               </div>
@@ -47,12 +56,6 @@ export default function Footer() {
                 <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
                 </svg>
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all">
-                <Facebook size={18} />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-white transition-all">
-                <Youtube size={18} />
               </a>
             </div>
           </div>
@@ -86,15 +89,21 @@ export default function Footer() {
               {[
                 { name: 'About Us', path: '/pages/about-us' },
                 { name: 'Marco Points', path: '/pages/rewards' },
-                { name: 'Blog', path: '/pages/blog' },
+                { name: 'Blog', path: '/blogs/news' },
                 { name: 'Contact Us', path: '/pages/contact-us' },
                 { name: 'Dealer Program', path: '/pages/dealer-program' },
                 { name: 'FAQ', path: '/pages/faq' }
               ].map((item) => (
                 <li key={item.name}>
-                  <Link to={item.path} className="hover:text-primary hover:translate-x-1 transition-all inline-block">
-                    {item.name}
-                  </Link>
+                  {item.name === 'Marco Points' && !user ? (
+                    <button onClick={openLogin} className="hover:text-primary hover:translate-x-1 transition-all inline-block text-left">
+                      {item.name}
+                    </button>
+                  ) : (
+                    <Link to={item.path} className="hover:text-primary hover:translate-x-1 transition-all inline-block">
+                      {item.name}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -106,17 +115,29 @@ export default function Footer() {
             <p className="text-sm text-crossed mb-6 leading-relaxed">
               Join our mailing list for exclusive offers, build guides, and new product drops.
             </p>
-            <form className="relative" onSubmit={(e) => { e.preventDefault(); alert('Thanks for joining the crew!'); }}>
-              <input 
-                type="email" 
-                placeholder="Email Address"
-                className="w-full bg-white/5 border border-white/10 px-6 py-4 text-sm focus:outline-none focus:border-primary transition-colors"
-                required
-              />
-              <button type="submit" className="absolute right-2 top-2 bottom-2 bg-primary px-6 text-[10px] font-black uppercase tracking-widest hover:bg-primary-hover transition-colors">
-                Join
-              </button>
-            </form>
+            {isSubscribed ? (
+              <div className="bg-white/5 border border-primary/20 p-6 rounded-sm">
+                <div className="flex items-center gap-3 text-primary mb-2">
+                  <CheckCircle2 size={20} />
+                  <h5 className="text-sm font-black uppercase tracking-tighter">You're in the crew!</h5>
+                </div>
+                <p className="text-[10px] text-crossed uppercase tracking-widest font-bold">Check your inbox for the latest updates.</p>
+              </div>
+            ) : (
+              <form className="relative" onSubmit={handleSubscribe}>
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email Address"
+                  className="w-full bg-white/5 border border-white/10 px-6 py-4 text-sm focus:outline-none focus:border-primary transition-colors"
+                  required
+                />
+                <button type="submit" className="absolute right-2 top-2 bottom-2 bg-primary px-6 text-[10px] font-black uppercase tracking-widest hover:bg-primary-hover transition-colors">
+                  Join
+                </button>
+              </form>
+            )}
             <div className="mt-8 p-4 bg-white/5 border border-white/10 rounded-sm">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
@@ -124,9 +145,15 @@ export default function Footer() {
                 </div>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest">Earn Marco Points</p>
-                  <Link to="/pages/rewards" className="text-[10px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1">
-                    Learn More <ChevronRight size={10} />
-                  </Link>
+                  {!user ? (
+                    <button onClick={openLogin} className="text-[10px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1">
+                      Learn More <ChevronRight size={10} />
+                    </button>
+                  ) : (
+                    <Link to="/pages/rewards" className="text-[10px] text-primary font-bold uppercase tracking-widest hover:underline flex items-center gap-1">
+                      Learn More <ChevronRight size={10} />
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
@@ -145,12 +172,12 @@ export default function Footer() {
             </div>
           </div>
           
-          <div className="flex items-center gap-4 opacity-40 grayscale hover:opacity-100 transition-opacity">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-4" referrerPolicy="no-referrer" />
-            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-6" referrerPolicy="no-referrer" />
-            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-4" referrerPolicy="no-referrer" />
-            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple Pay" className="h-4 invert" referrerPolicy="no-referrer" />
-            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Google_Pay_Logo_%282020%29.svg" alt="Google Pay" className="h-4" referrerPolicy="no-referrer" />
+          <div className="flex items-center gap-4 transition-opacity">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/200px-Visa_Inc._logo.svg.png" alt="Visa" className="h-4"  />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="Mastercard" className="h-6" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/200px-PayPal.svg.png" alt="PayPal" className="h-4"  />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/200px-Apple_logo_black.svg.png" alt="Apple Pay" className="h-4 invert"  />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Google_Pay_Logo_%282020%29.svg/200px-Google_Pay_Logo_%282020%29.svg.png" alt="Google Pay" className="h-4"  />
           </div>
         </div>
       </div>

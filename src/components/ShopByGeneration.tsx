@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 const generations = [
-  { name: "4th Gen", years: "2024-2026", image: "https://picsum.photos/seed/4gen/800/800", link: "/collections/4th-gen-tacoma", color: "from-primary/80" },
-  { name: "3rd Gen", years: "2016-2023", image: "https://picsum.photos/seed/3gen/800/800", link: "/collections/3rd-gen-tacoma", color: "from-dark/80" },
-  { name: "2nd Gen", years: "2005-2015", image: "https://picsum.photos/seed/2gen/800/800", link: "/collections/2nd-gen-tacoma", color: "from-dark/80" },
-  { name: "1st Gen", years: "1996-2004", image: "https://picsum.photos/seed/1gen/800/800", link: "/collections/1st-gen-tacoma", color: "from-dark/80" }
+  { name: "4th Gen", years: "2024-2026", image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Rav4_PillarDecals_Mockup_AllBlack.png?v=1773156102", link: "/collections/4th-gen-tacoma", color: "from-primary/80" },
+  { name: "3rd Gen", years: "2016-2023", image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/57e3bfa1-7c73-4d7f-9a92-a0e225543091.webp?v=1773697888", link: "/collections/3rd-gen-tacoma", color: "from-dark/80" },
+  { name: "2nd Gen", years: "2005-2015", image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/b876c9af-08e8-4764-b9ee-b8b1b6bae484.jpg?v=1773696933", link: "/collections/2nd-gen-tacoma", color: "from-dark/80" },
+  { name: "1st Gen", years: "1996-2004", image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/IMG_3211.png?v=1772760979", link: "/collections/1st-gen-tacoma", color: "from-dark/80" }
 ];
 
 export default function ShopByGeneration() {
@@ -34,7 +34,7 @@ export default function ShopByGeneration() {
                 src={gen.image} 
                 alt={gen.name}
                 className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000"
-                referrerPolicy="no-referrer"
+                
               />
               <div className={`absolute inset-0 bg-gradient-to-t ${gen.color} to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-500`} />
               

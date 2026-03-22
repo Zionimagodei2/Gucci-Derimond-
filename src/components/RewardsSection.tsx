@@ -17,7 +17,7 @@ export default function RewardsSection() {
               On Every Purchase
             </h2>
             <p className="text-crossed text-lg mb-12 leading-relaxed max-w-xl">
-              Join the Marco Tac Life rewards program and start earning points for every dollar spent. Redeem points for exclusive discounts, free gear, and early access to new releases.
+              Join the Marco Tac Life rewards program and start earning points for every dollar spent. Redeem points for free gear and early access to new releases.
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mb-12">
@@ -32,11 +32,11 @@ export default function RewardsSection() {
               </div>
               <div className="flex gap-5 group">
                 <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                  <Users size={24} className="text-primary group-hover:text-white" />
+                  <Star size={24} className="text-primary group-hover:text-white" />
                 </div>
                 <div>
-                  <h4 className="font-black uppercase tracking-tight mb-1">Refer Friends</h4>
-                  <p className="text-xs text-crossed">Get $20 for every referral</p>
+                  <h4 className="font-black uppercase tracking-tight mb-1">Exclusive Access</h4>
+                  <p className="text-xs text-crossed">Early access to new products</p>
                 </div>
               </div>
               <div className="flex gap-5 group">
