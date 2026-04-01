@@ -13,7 +13,6 @@ export default function AboutSection() {
                 src="https://cdn.shopify.com/s/files/1/0635/8276/5242/files/5X8A2262.jpg?v=1772859284" 
                 alt="Tacoma on trail" 
                 className="w-full h-full object-cover"
-                
               />
             </div>
             <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-primary p-10 hidden md:flex flex-col justify-center">

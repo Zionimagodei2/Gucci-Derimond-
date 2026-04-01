@@ -55,7 +55,6 @@ export default function BlogPreview() {
                   src={post.image} 
                   alt={post.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  
                 />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
               </Link>

@@ -50,7 +50,6 @@ export default function WelcomePopup() {
                 src="https://cdn.shopify.com/s/files/1/0635/8276/5242/files/IMG_3211.png?v=1772760979" 
                 alt="Welcome" 
                 className="w-full h-full object-cover"
-                
               />
             </div>
             

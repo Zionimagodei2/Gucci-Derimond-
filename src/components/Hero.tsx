@@ -6,7 +6,7 @@ import VideoModal from './VideoModal';
 
 const slides = [
   {
-    image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/fsr-evo-v2-rooftop-tent.webp?v=1772719766",
+    image: "https://toyotapowered.com/cdn/shop/files/Main.jpg?v=1704772527&width=3333",
     title: "BUILT FOR ADVENTURE",
     subtitle: "Overland Gear & Camping Essentials",
     cta: "EXPLORE GEAR",
@@ -14,7 +14,7 @@ const slides = [
     accent: "text-primary"
   },
   {
-    image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Hyperdrive_gloss_bronze_6lug_flowformed_b0fb0b87-fa9b-44ba-bbf0-ae43241a1d36.png?v=1772559073",
+    image: "https://toyotapowered.com/cdn/shop/files/image-asset.jpg?v=1702537917&width=1920",
     title: "UPGRADE YOUR RIDE",
     subtitle: "Premium Wheels & Accessories",
     cta: "SHOP WHEELS",
@@ -22,7 +22,7 @@ const slides = [
     accent: "text-white"
   },
   {
-    image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/modular-velcro-panel_a8ff721e-d9d3-4b59-aa16-d28b268675c1.jpg?v=1773785161",
+    image: "https://toyotapowered.com/cdn/shop/files/IMG_7804111.jpg?v=1699552631&width=2667",
     title: "ORGANIZE YOUR GEAR",
     subtitle: "Modular Velcro Panels & Storage",
     cta: "SHOP STORAGE",
@@ -60,9 +60,13 @@ export default function Hero() {
           className="absolute inset-0"
         >
           <div 
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] ease-linear scale-110"
-            style={{ backgroundImage: `url(${slides[current].image})` }}
+            className="absolute inset-0 transition-transform duration-[10000ms] ease-linear scale-110"
           >
+            <img 
+              src={slides[current].image} 
+              alt={slides[current].title}
+              className="w-full h-full object-cover"
+            />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
           </div>
           

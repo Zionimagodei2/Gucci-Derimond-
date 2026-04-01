@@ -26,7 +26,7 @@ export default function FeaturedCarousel({ currentProductId }: FeaturedCarouselP
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch('/api/products?t=' + Date.now());
         let data = await res.json();
         
         if (!Array.isArray(data)) {
@@ -64,37 +64,61 @@ export default function FeaturedCarousel({ currentProductId }: FeaturedCarouselP
   }, [currentProductId]);
 
   const [canScroll, setCanScroll] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [hasDragged, setHasDragged] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     const checkScroll = () => {
       if (scrollRef.current) {
-        setCanScroll(scrollRef.current.scrollWidth > scrollRef.current.clientWidth);
+        // Add a small buffer (2px) to account for rounding errors
+        setCanScroll(scrollRef.current.scrollWidth > scrollRef.current.clientWidth + 2);
       }
     };
     
-    // Check after a short delay to ensure DOM has updated
-    const timeoutId = setTimeout(checkScroll, 100);
+    checkScroll();
+    
+    // Use ResizeObserver to detect changes in container or content size (e.g., when images load)
+    const observer = new ResizeObserver(() => {
+      checkScroll();
+    });
+    
+    if (scrollRef.current) {
+      observer.observe(scrollRef.current);
+      // Also observe children to detect when they load/resize
+      Array.from(scrollRef.current.children).forEach((child) => {
+        observer.observe(child as Element);
+      });
+    }
+
     window.addEventListener('resize', checkScroll);
     return () => {
-      clearTimeout(timeoutId);
+      observer.disconnect();
       window.removeEventListener('resize', checkScroll);
     };
   }, [products]);
 
+  // Auto-scroll functionality
   useEffect(() => {
+    if (!canScroll || isHovered || isDragging) return;
+
     const interval = setInterval(() => {
-      if (scrollRef.current && canScroll) {
+      if (scrollRef.current) {
         const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+        // If we've reached the end, scroll back to start
         if (scrollLeft + clientWidth >= scrollWidth - 10) {
-          // Go back to start if at the end
           scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
-          scrollRef.current.scrollTo({ left: scrollLeft + 350, behavior: 'smooth' });
+          scrollRef.current.scrollBy({ left: 350 + 24, behavior: 'smooth' }); // Scroll by one item width + gap
         }
       }
-    }, 5000);
+    }, 4000); // Scroll every 4 seconds
+
     return () => clearInterval(interval);
-  }, [canScroll]);
+  }, [canScroll, isHovered, isDragging]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -102,6 +126,33 @@ export default function FeaturedCarousel({ currentProductId }: FeaturedCarouselP
       const scrollTo = direction === 'left' ? scrollLeft - clientWidth : scrollLeft + clientWidth;
       scrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
     }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setHasDragged(false);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Scroll speed multiplier
+    if (Math.abs(walk) > 10) {
+      setHasDragged(true);
+    }
+    scrollRef.current.scrollLeft = scrollLeft - walk;
   };
 
   if (products.length === 0) return null;
@@ -134,37 +185,49 @@ export default function FeaturedCarousel({ currentProductId }: FeaturedCarouselP
 
         <div 
           ref={scrollRef}
-          className="flex gap-6 overflow-x-auto snap-x snap-proximity no-scrollbar pb-8 touch-pan-x"
+          onMouseDown={handleMouseDown}
+          onMouseLeave={(e) => {
+            handleMouseLeave();
+            setIsHovered(false);
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          className={`flex gap-6 overflow-x-auto no-scrollbar pb-8 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           {products.map((product) => (
             <div 
               key={product.id}
-              className="min-w-[280px] md:min-w-[350px] snap-start group"
+              className="min-w-[280px] md:min-w-[350px] group"
             >
-              <div className="relative aspect-square overflow-hidden bg-border/20 mb-6">
+              <div className="relative aspect-[4/5] overflow-hidden bg-[#f4f4f4] mb-6">
                 {product.badge && product.badge.split(',').map((b, index) => (
                   <span 
                     key={b}
-                    className={`absolute left-4 z-10 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 ${b.trim() === 'SALE' ? 'bg-primary' : 'bg-dark'}`}
+                    className={`absolute left-4 z-10 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 ${b.trim() === 'SALE' ? 'bg-[#d32f2f]' : 'bg-black'}`}
                     style={{ top: `${16 + (index * 32)}px` }}
                   >
                     {b.trim()}
                   </span>
                 ))}
-                <Link to={`/products/${product.id}`}>
+                <Link to={`/products/${product.id}`} className="absolute inset-0" onClick={(e) => { if (hasDragged) e.preventDefault(); }}>
                   <img 
                     src={product.image} 
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    
+                    loading="lazy"
+                    className="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </Link>
                 <div className="absolute inset-x-4 bottom-4 translate-y-12 group-hover:translate-y-0 transition-transform duration-300">
                   <button 
-                    onClick={() => addToCart({ ...product, price: product.salePrice || product.price, quantity: 1 })}
-                    className="w-full bg-white text-dark py-3 font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 hover:bg-primary hover:text-white transition-colors shadow-xl"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (hasDragged) return;
+                      addToCart({ ...product, price: product.salePrice || product.price, quantity: 1 }, false);
+                    }}
+                    className="w-full bg-white text-black py-3 font-bold uppercase tracking-widest text-[12px] flex items-center justify-center gap-2 hover:bg-black hover:text-white transition-colors shadow-lg"
                   >
-                    <ShoppingBag size={16} /> Quick Add
+                    Quick Add
                   </button>
                 </div>
               </div>
@@ -180,7 +243,7 @@ export default function FeaturedCarousel({ currentProductId }: FeaturedCarouselP
                   ))}
                   <span className="text-[10px] text-crossed font-bold ml-1">({product.reviews || 0})</span>
                 </div>
-                <Link to={`/products/${product.id}`} className="block">
+                <Link to={`/products/${product.id}`} className="block" onClick={(e) => { if (hasDragged) e.preventDefault(); }}>
                   <h3 className="text-sm font-black uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-2 min-h-[2.5rem]">
                     {product.name}
                   </h3>

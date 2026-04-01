@@ -21,6 +21,7 @@ import CartDrawer from './components/CartDrawer';
 import WelcomePopup from './components/WelcomePopup';
 import AuthModal from './components/AuthModal';
 import CollectionPage from './pages/CollectionPage';
+import GenerationCategoryPage from './pages/GenerationCategoryPage';
 import ProductPage from './pages/ProductPage';
 import AdminPage from './pages/AdminPage';
 import ContentPage from './pages/ContentPage';
@@ -52,6 +53,21 @@ function HomePage() {
 }
 
 export default function App() {
+  React.useEffect(() => {
+    const trackVisit = async () => {
+      try {
+        await fetch('/api/visit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: window.location.pathname })
+        });
+      } catch (err) {
+        console.error('Failed to track visit:', err);
+      }
+    };
+    trackVisit();
+  }, []);
+
   return (
     <AuthProvider>
       <CartProvider>
@@ -65,6 +81,7 @@ export default function App() {
             <div className="flex-grow">
               <Routes>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/generation/:slug" element={<GenerationCategoryPage />} />
                 <Route path="/collections/:slug" element={<CollectionPage />} />
                 <Route path="/collections" element={<CollectionPage />} />
                 <Route path="/products/:id" element={<ProductPage />} />

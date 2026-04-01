@@ -25,7 +25,7 @@ export default function SearchPage() {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch('/api/products?t=' + Date.now());
         const data = await res.json();
         
         if (!Array.isArray(data)) {

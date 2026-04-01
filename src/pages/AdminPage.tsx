@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Save, X, Upload, Package, DollarSign, Tag, Info, ShieldAlert, Eye } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, Upload, Package, DollarSign, Tag, Info, ShieldAlert, Eye, Search, ChevronLeft, ChevronRight, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -63,7 +63,14 @@ export default function AdminPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'products' | 'marquee' | 'blog' | 'featured' | 'orders'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'marquee' | 'blog' | 'featured' | 'orders' | 'visits' | 'support'>('products');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+  const [visits, setVisits] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [newVisitAlert, setNewVisitAlert] = useState(false);
+  const [lastVisitId, setLastVisitId] = useState<number | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
@@ -77,8 +84,47 @@ export default function AdminPage() {
       fetchMarqueeImages();
       fetchBlogPosts();
       fetchOrders();
+      fetchVisits();
+      fetchMessages();
+
+      // Poll for visits every 10 seconds
+      const interval = setInterval(fetchVisits, 10000);
+      return () => clearInterval(interval);
     }
   }, [user]);
+
+  const fetchVisits = async () => {
+    try {
+      const res = await fetch('/api/visits', {
+        headers: { 'x-admin-access': 'true' }
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        if (lastVisitId && data.length > 0 && data[0].id > lastVisitId) {
+          setNewVisitAlert(true);
+          setTimeout(() => setNewVisitAlert(false), 5000);
+        }
+        setVisits(data);
+        if (data.length > 0) setLastVisitId(data[0].id);
+      }
+    } catch (error) {
+      console.error('Error fetching visits:', error);
+    }
+  };
+
+  const fetchMessages = async () => {
+    try {
+      const res = await fetch('/api/messages', {
+        headers: { 'x-admin-access': 'true' }
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setMessages(data);
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
@@ -143,7 +189,7 @@ export default function AdminPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('/api/products');
+      const res = await fetch('/api/products?t=' + Date.now());
       const data = await res.json();
       if (Array.isArray(data)) {
         setProducts(data);
@@ -159,7 +205,7 @@ export default function AdminPage() {
 
   const fetchMarqueeImages = async () => {
     try {
-      const res = await fetch('/api/marquee');
+      const res = await fetch('/api/marquee?t=' + Date.now());
       const data = await res.json();
       if (Array.isArray(data)) {
         setMarqueeImages(data);
@@ -273,6 +319,18 @@ export default function AdminPage() {
       setLoading(false);
     }
   };
+
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.category?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const handleEdit = (product: Product) => {
     setIsEditing(product.id);
@@ -390,6 +448,18 @@ export default function AdminPage() {
             >
               Orders
             </button>
+            <button 
+              onClick={() => { setActiveTab('visits'); setIsEditing(null); setIsAdding(false); setImageFile(null); }}
+              className={`whitespace-nowrap px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-md transition-colors ${activeTab === 'visits' ? 'bg-white text-dark' : 'hover:bg-white/20'}`}
+            >
+              Visits
+            </button>
+            <button 
+              onClick={() => { setActiveTab('support'); setIsEditing(null); setIsAdding(false); setImageFile(null); fetchMessages(); }}
+              className={`whitespace-nowrap px-6 py-2 text-xs font-bold uppercase tracking-widest rounded-md transition-colors ${activeTab === 'support' ? 'bg-white text-dark' : 'hover:bg-white/20'}`}
+            >
+              Support
+            </button>
           </div>
         </div>
       </div>
@@ -397,10 +467,20 @@ export default function AdminPage() {
       <div className="container-custom pt-12">
         {activeTab === 'products' && (
           <>
-            <div className="flex justify-end mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+              <div className="relative w-full md:w-96">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
+                <input 
+                  type="text" 
+                  placeholder="Search products..."
+                  value={searchTerm}
+                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                  className="w-full border border-border pl-12 pr-4 py-3 focus:outline-none focus:border-primary font-bold rounded-lg bg-border/5"
+                />
+              </div>
               <button 
                 onClick={() => { setIsAdding(true); setIsEditing(null); setFormData({}); setImageFile(null); }}
-                className="btn-primary flex items-center gap-2 px-6"
+                className="btn-primary flex items-center gap-2 px-6 w-full md:w-auto"
               >
                 <Plus size={20} /> Add New Product
               </button>
@@ -491,6 +571,8 @@ export default function AdminPage() {
                         <option value="camping">Camping</option>
                         <option value="wheels">Wheels</option>
                         <option value="suspension">Suspension</option>
+                        <option value="apparel">Apparel</option>
+                        <option value="accessories">Accessories</option>
                       </select>
                     </div>
                   </div>
@@ -623,7 +705,7 @@ export default function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
+              {paginatedProducts.map((product) => (
                 <tr key={product.id} className="border-b border-border hover:bg-border/5 transition-colors">
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-4">
@@ -677,6 +759,28 @@ export default function AdminPage() {
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-4">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => prev - 1)}
+              className="p-2 border border-border rounded-lg hover:bg-border/10 disabled:opacity-50"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <span className="text-sm font-bold uppercase tracking-widest">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button 
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              className="p-2 border border-border rounded-lg hover:bg-border/10 disabled:opacity-50"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        )}
         </>
         )}
         {activeTab === 'marquee' && (
@@ -1053,6 +1157,130 @@ export default function AdminPage() {
             </div>
           </>
         )}
+
+        {activeTab === 'visits' && (
+          <div className="space-y-8">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-black uppercase tracking-tighter">Recent Website Visits</h2>
+              <button 
+                onClick={fetchVisits}
+                className="text-[10px] font-black uppercase tracking-widest border border-border px-4 py-2 hover:bg-border/10 rounded-md"
+              >
+                Refresh
+              </button>
+            </div>
+
+            <div className="bg-white border border-border rounded-xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-border/10 border-b border-border">
+                  <tr>
+                    <th className="text-left py-4 px-4 text-[10px] font-black uppercase tracking-widest text-muted">Time</th>
+                    <th className="text-left py-4 px-4 text-[10px] font-black uppercase tracking-widest text-muted">Path</th>
+                    <th className="text-left py-4 px-4 text-[10px] font-black uppercase tracking-widest text-muted">IP Address</th>
+                    <th className="text-left py-4 px-4 text-[10px] font-black uppercase tracking-widest text-muted">User Agent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visits.map((visit) => (
+                    <tr key={visit.id} className="border-b border-border hover:bg-border/5 transition-colors">
+                      <td className="py-4 px-4 text-xs font-bold">
+                        {new Date(visit.timestamp).toLocaleString()}
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary px-2 py-1 rounded">
+                          {visit.path}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-xs font-medium text-muted">
+                        {visit.ip}
+                      </td>
+                      <td className="py-4 px-4 text-[10px] text-muted truncate max-w-[200px]">
+                        {visit.userAgent}
+                      </td>
+                    </tr>
+                  ))}
+                  {visits.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="py-12 text-center text-muted font-medium">
+                        No visits recorded yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'support' && (
+          <div className="space-y-8">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-black uppercase tracking-tighter">Customer Support Messages</h2>
+              <button 
+                onClick={fetchMessages}
+                className="text-[10px] font-black uppercase tracking-widest border border-border px-4 py-2 hover:bg-border/10 rounded-md"
+              >
+                Refresh
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              {messages.map((msg: any) => (
+                <div key={msg.id} className="bg-white border border-border p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                    <div>
+                      <h4 className="font-black uppercase tracking-widest text-sm">{msg.name}</h4>
+                      <p className="text-xs text-primary font-bold">{msg.email}</p>
+                    </div>
+                    <span className="text-[10px] text-muted font-bold uppercase tracking-widest bg-border/20 px-3 py-1 rounded-full">
+                      {new Date(msg.timestamp).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="bg-border/5 p-4 rounded-lg border border-border/50">
+                    <p className="text-sm text-dark leading-relaxed whitespace-pre-wrap">{msg.message}</p>
+                  </div>
+                  <div className="mt-4 flex justify-end">
+                    <a 
+                      href={`mailto:${msg.email}?subject=Re: Marco Tac Lifestyle Support Inquiry`}
+                      className="text-[10px] font-black uppercase tracking-widest bg-dark text-white px-6 py-2 rounded-md hover:bg-primary transition-colors"
+                    >
+                      Reply via Email
+                    </a>
+                  </div>
+                </div>
+              ))}
+              {messages.length === 0 && (
+                <div className="py-20 text-center border-2 border-dashed border-border rounded-xl">
+                  <Mail size={48} className="text-muted mx-auto mb-4 opacity-20" />
+                  <h3 className="text-xl font-black uppercase tracking-tighter mb-2">No Messages Yet</h3>
+                  <p className="text-muted font-medium">Customer inquiries will appear here.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <AnimatePresence>
+          {newVisitAlert && (
+            <motion.div 
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 100 }}
+              className="fixed top-24 right-6 z-[200] bg-primary text-white p-6 rounded-xl shadow-2xl flex items-center gap-4"
+            >
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <Eye size={20} />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest">New Visit Alert</p>
+                <p className="text-sm font-bold">A customer just visited the website!</p>
+              </div>
+              <button onClick={() => setNewVisitAlert(false)} className="p-1 hover:bg-white/10 rounded-full">
+                <X size={16} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -1151,7 +1379,7 @@ export default function AdminPage() {
                 {selectedOrder.items?.map((item, index) => (
                   <div key={index} className="flex gap-4 items-center bg-border/5 p-3 rounded-lg border border-border">
                     <div className="w-16 h-16 bg-white shrink-0 rounded overflow-hidden border border-border">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover"  />
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-grow">
                       <h5 className="font-bold text-sm line-clamp-1">{item.name}</h5>

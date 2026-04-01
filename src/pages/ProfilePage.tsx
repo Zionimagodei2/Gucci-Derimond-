@@ -143,7 +143,7 @@ export default function ProfilePage() {
             <div className="relative group">
               <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center shrink-0 overflow-hidden border-4 border-dark">
                 {user.avatar_url ? (
-                  <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover"  />
+                  <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-4xl font-black">{user.name.charAt(0).toUpperCase()}</span>
                 )}

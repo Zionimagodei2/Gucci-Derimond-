@@ -1,1 +1,54 @@
-[]
+[
+  {
+    "id": "ORD-1234",
+    "date": "2026-03-25",
+    "status": "Pending",
+    "total": 125.50,
+    "customer": {
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john.doe@example.com",
+      "address": "123 Main St",
+      "city": "Anytown",
+      "state": "CA",
+      "zipCode": "12345",
+      "country": "USA"
+    },
+    "items": [
+      {
+        "id": 8253476208826,
+        "name": "4x4 Button Trim (2022+ Tundra) - ARMY GREEN",
+        "price": 18,
+        "quantity": 2,
+        "image": "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/4489430585.jpg?v=1762173182"
+      }
+    ],
+    "created_at": "2026-03-25T10:00:00Z"
+  },
+  {
+    "id": "ORD-5678",
+    "date": "2026-03-26",
+    "status": "Shipped",
+    "total": 54.00,
+    "customer": {
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "email": "jane.smith@example.com",
+      "address": "456 Oak Ave",
+      "city": "Somewhere",
+      "state": "TX",
+      "zipCode": "67890",
+      "country": "USA"
+    },
+    "items": [
+      {
+        "id": 8253472374970,
+        "name": "4x4 Knob (2016-2023 Tacoma / 2014+ Tundra) - CAVALRY BLUE",
+        "price": 27,
+        "quantity": 2,
+        "image": "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/1378809982.jpg?v=1762173166"
+      }
+    ],
+    "created_at": "2026-03-26T14:30:00Z"
+  }
+]

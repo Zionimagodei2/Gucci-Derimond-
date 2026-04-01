@@ -85,14 +85,14 @@ export default function ProductPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Left: Image Gallery (60%) */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="aspect-square bg-border/20 overflow-hidden">
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover"  />
+            <div className="aspect-square bg-white overflow-hidden p-8 border border-gray-100">
+              <img src={product.image} alt={product.name} className="w-full h-full object-contain" />
             </div>
             {images.length > 1 && (
               <div className="grid grid-cols-4 gap-4">
                 {images.map((img, idx) => (
-                  <div key={idx} className="aspect-square bg-border/20 cursor-pointer hover:opacity-80 transition-opacity">
-                    <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" />
+                  <div key={idx} className="aspect-square bg-white border border-gray-100 p-2 cursor-pointer hover:border-black transition-colors">
+                    <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-contain" />
                   </div>
                 ))}
               </div>

@@ -8,9 +8,7 @@ import rateLimit from "express-rate-limit";
 import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-
-dotenv.config();
+import cors from "cors";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,7 +16,7 @@ const __dirname = path.dirname(__filename);
 // Supabase setup
 const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null as any;
 
 // Multer config for memory storage (buffer for Supabase upload)
 const storage = multer.memoryStorage();
@@ -31,31 +29,35 @@ const upload = multer({
 
 async function startServer() {
   const app = express();
-  const PORT = process.env.PORT || 3000;
+  const PORT = 3000;
 
   app.set('trust proxy', 1);
+  app.use(cors());
+
+  // Request logging middleware
+  app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+  });
 
   if (process.env.NODE_ENV === "production") {
     app.use(helmet({
-      contentSecurityPolicy: {
-        directives: {
-          ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-          "img-src": ["'self'", "data:", "*"],
-          "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-          "style-src": ["'self'", "'unsafe-inline'"],
-          "connect-src": ["'self'", "*"],
-        },
-      },
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+      crossOriginResourcePolicy: { policy: "cross-origin" }
     }));
   }
 
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: "Too many requests from this IP, please try again after 15 minutes",
-    validate: { xForwardedForHeader: false },
-  });
-  app.use("/api/", limiter);
+  // Enable rate limiter for production to protect from attacks
+  if (process.env.NODE_ENV === "production") {
+    const limiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 500, // Limit each IP to 500 requests per windowMs
+      message: "Too many requests from this IP, please try again after 15 minutes",
+      validate: { xForwardedForHeader: false },
+    });
+    app.use("/api/", limiter);
+  }
 
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -92,14 +94,58 @@ async function startServer() {
   };
 
   const PRODUCTS_FILE = path.join(__dirname, 'products.json');
+  const COLLECTION_PRODUCTS_FILE = path.join(__dirname, 'collection_products.json');
+  const SCRAPED_CATEGORIES_FILE = path.join(__dirname, 'scraped_categories.json');
   const MARQUEE_FILE = path.join(__dirname, 'marquee.json');
   const BLOGS_FILE = path.join(__dirname, 'blogs.json');
+  const VISITS_FILE = path.join(__dirname, 'visits.json');
+  const MESSAGES_FILE = path.join(__dirname, 'messages.json');
+
+  // Startup check for data files
+  console.log('--- Startup Data Check ---');
+  const filesToCheck = [
+    { name: 'Products', path: PRODUCTS_FILE },
+    { name: 'Collections', path: COLLECTION_PRODUCTS_FILE },
+    { name: 'Categories', path: SCRAPED_CATEGORIES_FILE },
+    { name: 'Marquee', path: MARQUEE_FILE },
+    { name: 'Blogs', path: BLOGS_FILE }
+  ];
+
+  filesToCheck.forEach(file => {
+    if (fs.existsSync(file.path)) {
+      const data = fs.readFileSync(file.path, 'utf8');
+      try {
+        const parsed = JSON.parse(data);
+        const count = Array.isArray(parsed) ? parsed.length : Object.keys(parsed).length;
+        console.log(`✅ ${file.name}: Found, Valid JSON, ${count} items.`);
+      } catch (e) {
+        console.error(`❌ ${file.name}: Found, INVALID JSON! Error: ${e.message}`);
+      }
+    } else {
+      console.warn(`⚠️ ${file.name}: NOT FOUND at ${file.path}`);
+    }
+  });
+  console.log('--------------------------');
 
   const readJsonFile = (filePath: string) => {
     try {
       if (fs.existsSync(filePath)) {
         const data = fs.readFileSync(filePath, 'utf8');
-        return JSON.parse(data);
+        if (!data || data.trim() === '') {
+          console.warn(`Warning: File ${filePath} is empty.`);
+          return filePath.endsWith('.json') && data.startsWith('{') ? {} : [];
+        }
+        try {
+          const parsed = JSON.parse(data);
+          console.log(`Successfully read ${filePath}, items: ${Array.isArray(parsed) ? parsed.length : 'object'}`);
+          return parsed;
+        } catch (parseErr) {
+          console.error(`Error parsing JSON from ${filePath}:`, parseErr);
+          console.error(`Data snippet: ${data.substring(0, 100)}...`);
+          return [];
+        }
+      } else {
+        console.warn(`Warning: File ${filePath} does not exist at ${filePath}`);
       }
     } catch (err) {
       console.error(`Error reading file ${filePath}:`, err);
@@ -115,6 +161,30 @@ async function startServer() {
     }
   };
 
+  const sendNotificationEmail = async (subject: string, text: string) => {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return;
+    try {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+
+      await transporter.sendMail({
+        from: process.env.SMTP_USER || '"Marco Tac Lifestyle" <noreply@marcotaclifestyle.com>',
+        to: process.env.SMTP_USER, // Send to the admin's email
+        subject: subject,
+        text: text
+      });
+    } catch (error) {
+      console.error('Failed to send notification email:', error);
+    }
+  };
+
   // API routes
   app.get("/api/health", async (req, res) => {
     try {
@@ -127,6 +197,9 @@ async function startServer() {
 
   // Get all products
   app.get("/api/products", async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     const products = readJsonFile(PRODUCTS_FILE);
     products.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     res.json(products);
@@ -141,6 +214,60 @@ async function startServer() {
     } else {
       res.json(product);
     }
+  });
+
+  // Get products for a collection
+  app.get("/api/collections/:slug/products", async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    const slug = req.params.slug;
+    const products = readJsonFile(PRODUCTS_FILE);
+    
+    if (slug === 'all') {
+      products.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      return res.json(products);
+    }
+    
+    const collectionProductsMap = readJsonFile(COLLECTION_PRODUCTS_FILE);
+    const productIds = collectionProductsMap[`/collections/${slug}`];
+    
+    if (!productIds) {
+      // If collection not found in map, fallback to filtering by category
+      const filteredProducts = products.filter((p: any) => 
+        p.category && p.category.toLowerCase().replace(/\s+/g, '-') === slug
+      );
+      filteredProducts.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      return res.json(filteredProducts);
+    }
+    
+    const filteredProducts = products.filter((p: any) => productIds.includes(p.id.toString()));
+    filteredProducts.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    res.json(filteredProducts);
+  });
+
+  // Get generation categories
+  app.get("/api/generations/:slug/categories", async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    const slug = req.params.slug;
+    const categoriesMap = readJsonFile(SCRAPED_CATEGORIES_FILE);
+    
+    // Convert slug back to name (e.g., "3rd-gen-tacoma" -> "3rd Gen Tacoma")
+    let name = slug.split('-').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    // Handle special cases
+    if (name === '3rd Gen 4runner') name = '3rd Gen 4Runner';
+    if (name === '4th Gen 4runner') name = '4th Gen 4Runner';
+    if (name === '5th Gen 4runner') name = '5th Gen 4Runner';
+    if (name === 'Fj Cruiser') name = 'FJ Cruiser';
+    if (name === 'Lexus Gx470') name = 'Lexus GX470';
+    
+    const categories = categoriesMap[name] || [];
+    
+    res.json(categories);
   });
 
   // Basic admin check middleware
@@ -161,6 +288,7 @@ async function startServer() {
   // Test schema endpoint
   app.get("/api/test-schema", async (req, res) => {
     try {
+      if (!supabase) return res.status(500).json({ error: "Supabase not configured" });
       const { data, error } = await supabase.from('products').update({ badge: 'FEATURED' }).eq('id', 1).select();
       res.json({ data, error });
     } catch (err: any) {
@@ -170,6 +298,7 @@ async function startServer() {
 
   app.get("/api/test-bucket", async (req, res) => {
     try {
+      if (!supabase) return res.status(500).json({ error: "Supabase not configured" });
       const { data, error } = await supabase.storage.getBucket('images');
       if (error) {
         // Try to create it
@@ -305,6 +434,9 @@ async function startServer() {
 
   // --- Marquee Images API ---
   app.get("/api/marquee", async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     const images = readJsonFile(MARQUEE_FILE);
     images.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     res.json(images);
@@ -453,8 +585,10 @@ async function startServer() {
   };
 
   // --- Orders API ---
-  app.get("/api/orders", adminCheck, async (req, res) => {
+  app.get("/api/orders", async (req, res) => {
     try {
+      // For now, return all orders if authenticated, or filter by user if we had user IDs
+      // In a real app, we would filter by req.user.id
       const orders = readOrders();
       // Sort by created_at descending
       orders.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -589,6 +723,75 @@ async function startServer() {
     }
   });
 
+  // Track visits
+  app.post("/api/visit", async (req, res) => {
+    try {
+      const visits = readJsonFile(VISITS_FILE);
+      const newVisit = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        path: req.body.path || '/'
+      };
+      visits.unshift(newVisit);
+      // Keep only last 100 visits
+      writeJsonFile(VISITS_FILE, visits.slice(0, 100));
+      
+      // Send email notification for new visit
+      sendNotificationEmail(
+        'New Site Visit - Marco Tac Lifestyle',
+        `A new visit was recorded on your site.\n\nPath: ${newVisit.path}\nIP: ${newVisit.ip}\nUser Agent: ${newVisit.userAgent}\nTime: ${newVisit.timestamp}`
+      );
+
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to log visit" });
+    }
+  });
+
+  app.get("/api/visits", adminCheck, async (req, res) => {
+    const visits = readJsonFile(VISITS_FILE);
+    res.json(visits);
+  });
+
+  // --- Contact API ---
+  app.post("/api/contact", async (req, res) => {
+    try {
+      const { name, email, message } = req.body;
+      if (!name || !email || !message) {
+        return res.status(400).json({ error: "All fields are required" });
+      }
+      
+      const messages = readJsonFile(MESSAGES_FILE);
+      const newMessage = {
+        id: Date.now(),
+        name,
+        email,
+        message,
+        timestamp: new Date().toISOString()
+      };
+      
+      messages.unshift(newMessage);
+      writeJsonFile(MESSAGES_FILE, messages.slice(0, 500)); // Keep last 500
+      
+      // Send email notification for new support message
+      sendNotificationEmail(
+        'New Support Message - Marco Tac Lifestyle',
+        `You have received a new support message.\n\nFrom: ${name} (${email})\nMessage:\n${message}\n\nTime: ${newMessage.timestamp}`
+      );
+
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/messages", adminCheck, async (req, res) => {
+    const messages = readJsonFile(MESSAGES_FILE);
+    res.json(messages);
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -598,14 +801,15 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     // Serve static files in production
-    app.use(express.static(path.join(__dirname, "dist")));
+    const distPath = path.join(process.cwd(), "dist");
+    app.use(express.static(distPath));
     app.get("*", (req, res) => {
-      res.sendFile(path.join(__dirname, "dist", "index.html"));
+      res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 

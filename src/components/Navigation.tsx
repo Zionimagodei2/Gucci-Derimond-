@@ -13,9 +13,9 @@ const navItems = [
       { name: 'Camper Storage', path: '/collections/camper-storage' },
     ],
     featuredImages: [
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/modular-velcro-panel_a8ff721e-d9d3-4b59-aa16-d28b268675c1.jpg?v=1773785161",
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/5X8A2262_66e62e7c-b268-48cc-b9f5-93d51cbeeb78.jpg?v=1772859285",
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/5X8A2262.jpg?v=1772859284"
+      "https://toyotapowered.com/cdn/shop/files/King_Plus2in_LT_Spec_Bypasses_Main.jpg?v=1762298591",
+      "https://toyotapowered.com/cdn/shop/files/DirtKing_4Runner_LT_Kit_Side.jpg?v=1762298581",
+      "https://toyotapowered.com/cdn/shop/files/center-console-usb-12v-power-panel-billet-aluminum-replaces-ashtray-1996-2002-4runnerteq-offroad-690935.jpg?v=1759978309&width=1365"
     ]
   },
   { 
@@ -26,9 +26,9 @@ const navItems = [
       { name: 'Replacement Parts', path: '/collections/replacement-part' },
     ],
     featuredImages: [
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Rav4_PillarDecals_Mockup_AllBlack.png?v=1773156102",
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Rav4_PillarDecals_Mockup_AllBlack.png?v=1773156102",
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Rav4_PillarDecals_Mockup_AllBlack.png?v=1773156102"
+      "https://toyotapowered.com/cdn/shop/files/1.4IDx1-1.4ODFenderWashersMain.jpg?v=1762298566",
+      "https://toyotapowered.com/cdn/shop/files/IMG_2202_423acb9e-23a8-46dd-a047-b44d1ec31263.jpg?v=1762277750",
+      "https://toyotapowered.com/cdn/shop/files/IMG_2662.jpg?v=1762277746"
     ]
   },
   { 
@@ -39,9 +39,9 @@ const navItems = [
       { name: 'Truck, SUV, & Jeep Wheels', path: '/collections/truck-suv-jeep-wheels' },
     ],
     featuredImages: [
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Hyperdrive_gloss_bronze_6lug_flowformed_b0fb0b87-fa9b-44ba-bbf0-ae43241a1d36.png?v=1772559073",
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Hyperdrive_gloss_bronze_6lug_flowformed_b0fb0b87-fa9b-44ba-bbf0-ae43241a1d36.png?v=1772559073",
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Hyperdrive_gloss_bronze_6lug_flowformed_b0fb0b87-fa9b-44ba-bbf0-ae43241a1d36.png?v=1772559073"
+      "https://toyotapowered.com/cdn/shop/files/Hyperdrive_gloss_bronze_6lug_flowformed_b0fb0b87-fa9b-44ba-bbf0-ae43241a1d36.png?v=1772559073",
+      "https://toyotapowered.com/cdn/shop/files/atlas_20satin_20black_206lug.png?v=1762265387",
+      "https://toyotapowered.com/cdn/shop/files/venture_20satin_20bronze_206lug.png?v=1762265386"
     ]
   },
   { 
@@ -51,9 +51,9 @@ const navItems = [
       { name: 'Rooftop Tents', path: '/collections/rooftop-tent' },
     ],
     featuredImages: [
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/fsr-evo-v2-rooftop-tent.webp?v=1772719766",
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/fsr-evo-v2-rooftop-tent.webp?v=1772719766",
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/fsr-evo-v2-rooftop-tent.webp?v=1772719766"
+      "https://toyotapowered.com/cdn/shop/files/RX-1G122.jpg?v=1762346078",
+      "https://toyotapowered.com/cdn/shop/files/RX-1W12.jpg?v=1762346078",
+      "https://toyotapowered.com/cdn/shop/files/BLACK1GALLONWATER1.jpg?v=1762346080"
     ]
   },
   { 
@@ -63,9 +63,9 @@ const navItems = [
       { name: 'Print Material', path: '/collections/print-material' },
     ],
     featuredImages: [
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/57e3bfa1-7c73-4d7f-9a92-a0e225543091.webp?v=1773697888",
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/57e3bfa1-7c73-4d7f-9a92-a0e225543091.webp?v=1773697888",
-      "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/57e3bfa1-7c73-4d7f-9a92-a0e225543091.webp?v=1773697888"
+      "https://toyotapowered.com/cdn/shop/files/Studio-Projecthoodieback.png?v=1762130459",
+      "https://toyotapowered.com/cdn/shop/files/DirtKing_Black_Rado_Hoodie_Main.jpg?v=1762298592",
+      "https://toyotapowered.com/cdn/shop/files/dirt-king-heather-grey-zip-up-hoodie-main.jpg?v=1762298555"
     ]
   },
   { name: 'SALE', path: '/collections/sale', color: 'text-primary' },
@@ -133,7 +133,6 @@ export default function Navigation() {
                                 src={imgSrc} 
                                 alt="Featured" 
                                 className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-700"
-                                
                               />
                               <div className="absolute inset-0 bg-black/20 group-hover/img:bg-black/40 transition-colors" />
                               <div className="absolute bottom-4 left-4">

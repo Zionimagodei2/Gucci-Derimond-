@@ -26,19 +26,19 @@ export const ProductCard: React.FC<{ product: Product, viewMode?: 'grid' | 'list
 
   return (
     <div className={`group ${viewMode === 'grid' ? 'flex flex-col' : 'flex flex-col sm:flex-row gap-6 border-b border-border pb-8'}`}>
-      <div className={`relative overflow-hidden bg-border/20 ${viewMode === 'grid' ? 'aspect-square mb-4' : 'w-full sm:w-48 aspect-square shrink-0'}`}>
-        <Link to={`/products/${product.id}`}>
+      <div className={`relative overflow-hidden bg-white ${viewMode === 'grid' ? 'aspect-square mb-4' : 'w-full sm:w-48 aspect-square shrink-0'}`}>
+        <Link to={`/products/${product.id}`} className="absolute inset-0 p-4">
           <img 
             src={product.image} 
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-            
+            loading="lazy"
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
           />
         </Link>
         {product.badge && product.badge.split(',').map((b, index) => (
           <span 
             key={b} 
-            className={`absolute left-3 px-2 py-1 text-[10px] font-black text-white ${b.trim() === 'SALE' ? 'bg-primary' : 'bg-dark'}`}
+            className={`absolute left-3 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white ${b.trim() === 'SALE' ? 'bg-[#d32f2f]' : 'bg-black'}`}
             style={{ top: `${12 + (index * 28)}px` }}
           >
             {b.trim()}
@@ -46,54 +46,58 @@ export const ProductCard: React.FC<{ product: Product, viewMode?: 'grid' | 'list
         ))}
         {viewMode === 'grid' && (
           <button 
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
               addToCart({ ...product, price: product.salePrice || product.price, quantity: 1 }, false);
-              setIsCartOpen(false);
-              navigate('/checkout');
+              setIsCartOpen(true);
             }}
-            className="absolute bottom-0 left-0 right-0 bg-dark text-white font-black py-3 text-[11px] uppercase tracking-widest opacity-0 group-hover:opacity-100 translate-y-full group-hover:translate-y-0 transition-all duration-300 hover:bg-primary"
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[90%] bg-white text-black font-bold py-3 text-[12px] uppercase tracking-widest opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-black hover:text-white shadow-lg"
           >
-            Quick Buy
+            Quick Add
           </button>
         )}
       </div>
       
       <div className={`flex flex-col gap-1 ${viewMode === 'list' ? 'justify-center flex-grow' : ''}`}>
-        <div className="flex items-center gap-1 mb-1">
-          {[...Array(5)].map((_, i) => (
-            <Star key={i} size={12} className={i < Math.floor(rating || 5) ? "fill-star text-star" : "text-border"} />
-          ))}
-          <span className="text-[10px] text-muted font-bold ml-1">({reviews || 0})</span>
-        </div>
-        <Link to={`/products/${product.id}`} className="text-sm font-bold line-clamp-2 hover:text-primary transition-colors">
+        {product.brand && (
+          <span className="text-[11px] font-medium uppercase tracking-widest text-gray-500">{product.brand}</span>
+        )}
+        <Link to={`/products/${product.id}`} className="text-[15px] font-medium leading-snug hover:underline decoration-1 underline-offset-4">
           {product.name}
         </Link>
-        {viewMode === 'list' && product.brand && (
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary">{product.brand}</span>
+        
+        {reviews > 0 && (
+          <div className="flex items-center gap-1 mt-1">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} size={12} className={i < Math.floor(rating || 5) ? "fill-black text-black" : "text-gray-300"} />
+            ))}
+            <span className="text-[11px] text-gray-500 ml-1">({reviews})</span>
+          </div>
         )}
+
         <div className="flex items-center gap-2 mt-1">
           {product.salePrice ? (
             <>
-              <span className="text-primary font-black text-lg">${product.salePrice.toFixed(2)}</span>
-              <span className="text-crossed text-sm line-through font-medium">${product.price.toFixed(2)}</span>
+              <span className="text-[#d32f2f] font-semibold text-[15px]">${product.salePrice.toFixed(2)}</span>
+              <span className="text-gray-400 text-[13px] line-through">${product.price.toFixed(2)}</span>
             </>
           ) : (
-            <span className="font-black text-lg">${product.price.toFixed(2)}</span>
+            <span className="font-semibold text-[15px]">${product.price.toFixed(2)}</span>
           )}
         </div>
+        
         {viewMode === 'list' && (
           <div className="mt-4 flex items-center gap-4">
             <button 
               onClick={() => {
                 addToCart({ ...product, price: product.salePrice || product.price, quantity: 1 }, false);
-                setIsCartOpen(false);
-                navigate('/checkout');
+                setIsCartOpen(true);
               }}
-              className="btn-primary px-6 py-2 text-[10px]"
+              className="bg-black text-white px-8 py-3 text-[12px] font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors"
             >
               Add to Cart
             </button>
-            <Link to={`/products/${product.id}`} className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">
+            <Link to={`/products/${product.id}`} className="text-[12px] font-bold uppercase tracking-widest hover:underline underline-offset-4">
               View Details
             </Link>
           </div>

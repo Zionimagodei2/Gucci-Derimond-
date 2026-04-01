@@ -11,7 +11,7 @@ export default function SpotlightProduct() {
     name: "Evolution V2 Standard - Rooftop Tent",
     price: 2762.50,
     salePrice: null,
-    image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/fsr-evo-v2-rooftop-tent.webp?v=1772719766",
+    image: "https://toyotapowered.com/cdn/shop/products/quandary-16x9-6.webp?v=1700366124&width=2000",
     description: "The Evolution V2 Standard Rooftop Tent is the ultimate camping companion. Lightweight, durable, and ready for any adventure. Designed for maximum comfort and aggressive styling."
   };
 
@@ -24,7 +24,6 @@ export default function SpotlightProduct() {
               src={product.image} 
               alt={product.name}
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000"
-              
             />
           </div>
           

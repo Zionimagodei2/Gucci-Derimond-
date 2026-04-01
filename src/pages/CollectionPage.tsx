@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useCart } from '../context/CartContext';
 
 import { ProductCard } from '../components/ProductCard';
+import { generations } from '../components/ShopByGeneration';
 
 interface Product {
   id: number;
@@ -35,11 +36,12 @@ export default function CollectionPage() {
   const [sortBy, setSortBy] = useState<string>('Featured');
   
   const title = slug ? slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'All Products';
+  const currentGeneration = generations.find(g => g.link === `/collections/${slug}`);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch('/api/products');
+        const res = await fetch(`/api/collections/${slug || 'all'}/products?t=` + Date.now());
         const data = await res.json();
         
         if (!Array.isArray(data)) {
@@ -48,25 +50,7 @@ export default function CollectionPage() {
           return;
         }
         
-        // Filter by category if slug matches a category
-        const categoryMap: Record<string, string> = {
-          'accessories': 'Accessories',
-          'print-material': 'Print Material',
-          'vehicle-decals': 'Vehicle Decals',
-          'velcro-bag': 'Velcro Bag',
-          'camper-storage': 'Camper Storage',
-          'wheels': 'Wheels',
-          'replacement-part': 'Replacement Part',
-          'rooftop-tent': 'Rooftop Tent',
-          'truck-suv-jeep-wheels': 'Truck, SUV, & Jeep Wheels'
-        };
-
-        const category = categoryMap[slug || ''];
-        if (category) {
-          setProducts(data.filter((p: Product) => p.category === category));
-        } else {
-          setProducts(data);
-        }
+        setProducts(data);
         setVisibleCount(9); // Reset visible count when category changes
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -129,6 +113,27 @@ export default function CollectionPage() {
         </div>
       </div>
 
+      {/* Generation Banner */}
+      {currentGeneration && (
+        <div className="relative h-[30vh] min-h-[300px] max-h-[400px] w-full overflow-hidden flex items-center justify-center">
+          <img 
+            src={currentGeneration.image} 
+            alt={currentGeneration.name}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className={`absolute inset-0 bg-gradient-to-t ${currentGeneration.color} to-transparent opacity-80`} />
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="relative z-10 text-center text-white p-6">
+            <span className="text-sm md:text-base font-black uppercase tracking-[0.4em] mb-4 block opacity-90">
+              {currentGeneration.years}
+            </span>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter uppercase drop-shadow-lg">
+              {currentGeneration.name}
+            </h1>
+          </div>
+        </div>
+      )}
+
       <div className="container-custom pt-12">
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Sidebar Filters */}
@@ -171,7 +176,7 @@ export default function CollectionPage() {
                   <div>
                     <h5 className="text-xs font-bold uppercase mb-3">Brand</h5>
                     <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                      {['AlphaRex', 'Baja Designs', 'CBI Offroad', 'Meso Customs', 'Morimoto', 'Prinsu', 'ROAM'].map(brand => (
+                      {['AlphaRex', 'Baja Designs', 'CBI Offroad', 'Meso Customs', 'Morimoto', 'Prinsu', 'ROAM', 'Overland Sector', 'AJT Design', 'Aspire Auto Accessories'].map(brand => (
                         <label key={brand} className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
                           <input 
                             type="checkbox" 
@@ -192,7 +197,7 @@ export default function CollectionPage() {
           <div className="flex-grow">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
               <div>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tighter mb-2 uppercase">{title}</h1>
+                {!currentGeneration && <h1 className="text-3xl md:text-4xl font-black tracking-tighter mb-2 uppercase">{title}</h1>}
                 <p className="text-muted text-sm font-medium">{products.length} Products</p>
               </div>
               
@@ -327,7 +332,7 @@ export default function CollectionPage() {
                   <div>
                     <h5 className="text-xs font-bold uppercase mb-4">Brand</h5>
                     <div className="space-y-3">
-                      {['AlphaRex', 'Baja Designs', 'CBI Offroad', 'Meso Customs', 'Morimoto', 'Prinsu', 'ROAM'].map(brand => (
+                      {['AlphaRex', 'Baja Designs', 'CBI Offroad', 'Meso Customs', 'Morimoto', 'Prinsu', 'ROAM', 'Overland Sector', 'AJT Design', 'Aspire Auto Accessories'].map(brand => (
                         <label key={brand} className="flex items-center gap-3 text-sm cursor-pointer">
                           <input 
                             type="checkbox" 

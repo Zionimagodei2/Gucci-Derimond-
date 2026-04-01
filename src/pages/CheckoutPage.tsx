@@ -174,7 +174,7 @@ export default function CheckoutPage() {
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex gap-4 bg-white p-3 rounded border border-border">
                     <div className="w-16 h-16 bg-border/20 shrink-0">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover"  />
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-grow flex flex-col justify-center">
                       <h3 className="text-sm font-bold leading-tight line-clamp-2">{item.name}</h3>

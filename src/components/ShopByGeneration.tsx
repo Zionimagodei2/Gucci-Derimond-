@@ -2,11 +2,15 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
-const generations = [
-  { name: "4th Gen", years: "2024-2026", image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/Rav4_PillarDecals_Mockup_AllBlack.png?v=1773156102", link: "/collections/4th-gen-tacoma", color: "from-primary/80" },
-  { name: "3rd Gen", years: "2016-2023", image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/57e3bfa1-7c73-4d7f-9a92-a0e225543091.webp?v=1773697888", link: "/collections/3rd-gen-tacoma", color: "from-dark/80" },
-  { name: "2nd Gen", years: "2005-2015", image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/b876c9af-08e8-4764-b9ee-b8b1b6bae484.jpg?v=1773696933", link: "/collections/2nd-gen-tacoma", color: "from-dark/80" },
-  { name: "1st Gen", years: "1996-2004", image: "https://cdn.shopify.com/s/files/1/0635/8276/5242/files/IMG_3211.png?v=1772760979", link: "/collections/1st-gen-tacoma", color: "from-dark/80" }
+export const generations = [
+  { name: "3rd Gen Tacoma", years: "2016-2023", image: "https://toyotapowered.com/cdn/shop/files/2a09c8a4d22859360816d64ba2836118.jpg?v=1705382194&width=1536", link: "/generation/3rd-gen-tacoma", color: "from-primary/80" },
+  { name: "2nd Gen Tacoma", years: "2005-2015", image: "https://toyotapowered.com/cdn/shop/files/thumbnail_IMG_3094.jpg?v=1703181295&width=1920", link: "/generation/2nd-gen-tacoma", color: "from-dark/80" },
+  { name: "1st Gen Tacoma", years: "1996-2004", image: "https://toyotapowered.com/cdn/shop/files/image-asset.jpg?v=1702537917&width=1920", link: "/generation/1st-gen-tacoma", color: "from-dark/80" },
+  { name: "5th Gen 4Runner", years: "2010-2023", image: "https://toyotapowered.com/cdn/shop/files/ig_anbu-rnr_4runner_04.webp?v=1705382094&width=2000", link: "/generation/5th-gen-4runner", color: "from-primary/80" },
+  { name: "4th Gen 4Runner", years: "2003-2009", image: "https://toyotapowered.com/cdn/shop/files/4th-gen-4runner-03-09-center-console-dash-modular-accessory-mount-mamteq-offroad-547318.jpg?v=1759978315&width=1320", link: "/generation/4th-gen-4runner", color: "from-dark/80" },
+  { name: "3rd Gen 4Runner", years: "1996-2002", image: "https://toyotapowered.com/cdn/shop/files/DSC00217-212312311.jpg?v=1703203961&width=5000", link: "/generation/3rd-gen-4runner", color: "from-dark/80" },
+  { name: "Lexus GX470", years: "2003-2009", image: "https://toyotapowered.com/cdn/shop/files/DSC4807_d1d066ec-dafb-4355-9be5-40c7900e94f4.jpg?v=1770433816&width=1254", link: "/generation/lexus-gx470", color: "from-primary/80" },
+  { name: "FJ Cruiser", years: "2007-2014", image: "https://toyotapowered.com/cdn/shop/files/IMG_2202_423acb9e-23a8-46dd-a047-b44d1ec31263.jpg?v=1762277750&width=4032", link: "/generation/fj-cruiser", color: "from-dark/80" }
 ];
 
 export default function ShopByGeneration() {
@@ -34,7 +38,6 @@ export default function ShopByGeneration() {
                 src={gen.image} 
                 alt={gen.name}
                 className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000"
-                
               />
               <div className={`absolute inset-0 bg-gradient-to-t ${gen.color} to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-500`} />
               
