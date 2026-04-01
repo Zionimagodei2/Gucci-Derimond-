@@ -40,7 +40,7 @@ async function startServer() {
       contentSecurityPolicy: {
         directives: {
           ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-          "img-src": ["'self'", "data:", "https://picsum.photos", "https://upload.wikimedia.org", "https://images.unsplash.com", "https://cdn.shopify.com", supabaseUrl ? new URL(supabaseUrl).hostname : ""],
+          "img-src": ["'self'", "data:", "*"],
           "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
           "style-src": ["'self'", "'unsafe-inline'"],
           "connect-src": ["'self'", "*"],
