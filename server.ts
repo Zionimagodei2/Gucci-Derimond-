@@ -9,6 +9,7 @@ import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import nodemailer from "nodemailer";
 import cors from "cors";
+import zlib from "zlib";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -93,7 +94,8 @@ async function startServer() {
     }
   };
 
-  const PRODUCTS_FILE = path.join(__dirname, 'products.json');
+  const PRODUCTS_FILE_1 = path.join(__dirname, 'products_1.json');
+  const PRODUCTS_FILE_2 = path.join(__dirname, 'products_2.json');
   const COLLECTION_PRODUCTS_FILE = path.join(__dirname, 'collection_products.json');
   const SCRAPED_CATEGORIES_FILE = path.join(__dirname, 'scraped_categories.json');
   const MARQUEE_FILE = path.join(__dirname, 'marquee.json');
@@ -104,7 +106,8 @@ async function startServer() {
   // Startup check for data files
   console.log('--- Startup Data Check ---');
   const filesToCheck = [
-    { name: 'Products', path: PRODUCTS_FILE },
+    { name: 'Products 1', path: PRODUCTS_FILE_1 },
+    { name: 'Products 2', path: PRODUCTS_FILE_2 },
     { name: 'Collections', path: COLLECTION_PRODUCTS_FILE },
     { name: 'Categories', path: SCRAPED_CATEGORIES_FILE },
     { name: 'Marquee', path: MARQUEE_FILE },
@@ -113,12 +116,18 @@ async function startServer() {
 
   filesToCheck.forEach(file => {
     if (fs.existsSync(file.path)) {
-      const data = fs.readFileSync(file.path, 'utf8');
       try {
+        let data: string;
+        if (file.path.endsWith('.gz')) {
+          const compressed = fs.readFileSync(file.path);
+          data = zlib.gunzipSync(compressed).toString('utf8');
+        } else {
+          data = fs.readFileSync(file.path, 'utf8');
+        }
         const parsed = JSON.parse(data);
         const count = Array.isArray(parsed) ? parsed.length : Object.keys(parsed).length;
         console.log(`✅ ${file.name}: Found, Valid JSON, ${count} items.`);
-      } catch (e) {
+      } catch (e: any) {
         console.error(`❌ ${file.name}: Found, INVALID JSON! Error: ${e.message}`);
       }
     } else {
@@ -129,23 +138,35 @@ async function startServer() {
 
   const readJsonFile = (filePath: string) => {
     try {
-      if (fs.existsSync(filePath)) {
-        const data = fs.readFileSync(filePath, 'utf8');
+      const isGz = filePath.endsWith('.gz');
+      const actualPath = isGz && !fs.existsSync(filePath) && fs.existsSync(filePath.replace('.gz', '')) 
+        ? filePath.replace('.gz', '') 
+        : filePath;
+        
+      if (fs.existsSync(actualPath)) {
+        let data: string;
+        if (actualPath.endsWith('.gz')) {
+          const compressed = fs.readFileSync(actualPath);
+          data = zlib.gunzipSync(compressed).toString('utf8');
+        } else {
+          data = fs.readFileSync(actualPath, 'utf8');
+        }
+        
         if (!data || data.trim() === '') {
-          console.warn(`Warning: File ${filePath} is empty.`);
-          return filePath.endsWith('.json') && data.startsWith('{') ? {} : [];
+          console.warn(`Warning: File ${actualPath} is empty.`);
+          return actualPath.includes('.json') && data.startsWith('{') ? {} : [];
         }
         try {
           const parsed = JSON.parse(data);
-          console.log(`Successfully read ${filePath}, items: ${Array.isArray(parsed) ? parsed.length : 'object'}`);
+          console.log(`Successfully read ${actualPath}, items: ${Array.isArray(parsed) ? parsed.length : 'object'}`);
           return parsed;
         } catch (parseErr) {
-          console.error(`Error parsing JSON from ${filePath}:`, parseErr);
+          console.error(`Error parsing JSON from ${actualPath}:`, parseErr);
           console.error(`Data snippet: ${data.substring(0, 100)}...`);
           return [];
         }
       } else {
-        console.warn(`Warning: File ${filePath} does not exist at ${filePath}`);
+        console.warn(`Warning: File ${actualPath} does not exist`);
       }
     } catch (err) {
       console.error(`Error reading file ${filePath}:`, err);
@@ -155,10 +176,28 @@ async function startServer() {
 
   const writeJsonFile = (filePath: string, data: any[]) => {
     try {
-      fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+      const jsonString = JSON.stringify(data, null, 2);
+      if (filePath.endsWith('.gz')) {
+        const compressed = zlib.gzipSync(Buffer.from(jsonString, 'utf8'));
+        fs.writeFileSync(filePath, compressed);
+      } else {
+        fs.writeFileSync(filePath, jsonString);
+      }
     } catch (err) {
       console.error(`Error writing file ${filePath}:`, err);
     }
+  };
+
+  const getProducts = () => {
+    const p1 = readJsonFile(PRODUCTS_FILE_1);
+    const p2 = readJsonFile(PRODUCTS_FILE_2);
+    return [...(Array.isArray(p1) ? p1 : []), ...(Array.isArray(p2) ? p2 : [])];
+  };
+
+  const saveProducts = (products: any[]) => {
+    const half = Math.ceil(products.length / 2);
+    writeJsonFile(PRODUCTS_FILE_1, products.slice(0, half));
+    writeJsonFile(PRODUCTS_FILE_2, products.slice(half));
   };
 
   const sendNotificationEmail = async (subject: string, text: string) => {
@@ -188,11 +227,22 @@ async function startServer() {
   // API routes
   app.get("/api/health", async (req, res) => {
     try {
-      const products = readJsonFile(PRODUCTS_FILE);
+      const products = getProducts();
       res.json({ status: "ok", message: "Marco Tac Lifestyle API is running", productCount: products.length });
     } catch (err) {
       res.status(500).json({ status: "error", message: "Database connection failed" });
     }
+  });
+
+  app.get("/api/health", (req, res) => {
+    const products = getProducts();
+    const collectionProductsMap = readJsonFile(COLLECTION_PRODUCTS_FILE);
+    res.json({ 
+      status: "ok", 
+      productsCount: products.length,
+      collectionsCount: Object.keys(collectionProductsMap).length,
+      hasBilstein: products.some((p: any) => p.brand && p.brand.toLowerCase().includes('bilstein'))
+    });
   });
 
   // Get all products
@@ -200,14 +250,14 @@ async function startServer() {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
-    const products = readJsonFile(PRODUCTS_FILE);
+    const products = getProducts();
     products.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     res.json(products);
   });
 
   // Get single product
   app.get("/api/products/:id", async (req, res) => {
-    const products = readJsonFile(PRODUCTS_FILE);
+    const products = getProducts();
     const product = products.find((p: any) => p.id.toString() === req.params.id);
     if (!product) {
       res.status(404).json({ error: "Product not found" });
@@ -223,7 +273,7 @@ async function startServer() {
     res.setHeader('Expires', '0');
     
     const slug = req.params.slug;
-    const products = readJsonFile(PRODUCTS_FILE);
+    const products = getProducts();
     
     if (slug === 'all') {
       products.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -359,7 +409,7 @@ async function startServer() {
       const parsedPrice = parseFloat(price);
       const parsedSalePrice = salePrice ? parseFloat(salePrice) : null;
 
-      const products = readJsonFile(PRODUCTS_FILE);
+      const products = getProducts();
       const newProduct = {
         id: Date.now(),
         name, brand, price: parsedPrice, salePrice: parsedSalePrice, description, fitment, category, image, badge: badge || null,
@@ -367,7 +417,7 @@ async function startServer() {
       };
       
       products.push(newProduct);
-      writeJsonFile(PRODUCTS_FILE, products);
+      saveProducts(products);
 
       res.json({ id: newProduct.id, image });
     } catch (error: any) {
@@ -380,7 +430,7 @@ async function startServer() {
     try {
       const { isFeatured } = req.body;
       
-      const products = readJsonFile(PRODUCTS_FILE);
+      const products = getProducts();
       const productIndex = products.findIndex((p: any) => p.id.toString() === req.params.id);
       
       if (productIndex === -1) {
@@ -401,7 +451,7 @@ async function startServer() {
       const newBadge = badges.length > 0 ? badges.join(',') : null;
       
       products[productIndex].badge = newBadge;
-      writeJsonFile(PRODUCTS_FILE, products);
+      saveProducts(products);
         
       res.json({ success: true, badge: newBadge });
     } catch (error: any) {
@@ -422,7 +472,7 @@ async function startServer() {
       const parsedPrice = parseFloat(price);
       const parsedSalePrice = salePrice ? parseFloat(salePrice) : null;
 
-      const products = readJsonFile(PRODUCTS_FILE);
+      const products = getProducts();
       const productIndex = products.findIndex((p: any) => p.id.toString() === req.params.id);
       
       if (productIndex === -1) {
@@ -434,7 +484,7 @@ async function startServer() {
         name, brand, price: parsedPrice, salePrice: parsedSalePrice, description, fitment, category, image, badge: badge || null
       };
       
-      writeJsonFile(PRODUCTS_FILE, products);
+      saveProducts(products);
 
       res.json({ success: true, image });
     } catch (error: any) {
@@ -445,9 +495,9 @@ async function startServer() {
   // Delete product
   app.delete("/api/products/:id", adminCheck, async (req, res) => {
     try {
-      let products = readJsonFile(PRODUCTS_FILE);
+      let products = getProducts();
       products = products.filter((p: any) => p.id.toString() !== req.params.id);
-      writeJsonFile(PRODUCTS_FILE, products);
+      saveProducts(products);
       res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
