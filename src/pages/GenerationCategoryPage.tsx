@@ -101,6 +101,7 @@ export default function GenerationCategoryPage() {
                   <img 
                     src={category.image} 
                     alt={category.name}
+                    referrerPolicy="no-referrer"
                     className="absolute inset-0 w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>

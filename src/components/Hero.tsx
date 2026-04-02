@@ -65,6 +65,7 @@ export default function Hero() {
             <img 
               src={slides[current].image} 
               alt={slides[current].title}
+              referrerPolicy="no-referrer"
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />

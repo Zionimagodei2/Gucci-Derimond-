@@ -215,6 +215,7 @@ export default function FeaturedCarousel({ currentProductId }: FeaturedCarouselP
                     src={product.image} 
                     alt={product.name}
                     loading="lazy"
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </Link>

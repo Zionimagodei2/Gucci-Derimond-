@@ -12,6 +12,7 @@ export default function AboutSection() {
               <img 
                 src="https://cdn.shopify.com/s/files/1/0635/8276/5242/files/5X8A2262.jpg?v=1772859284" 
                 alt="Tacoma on trail" 
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
             </div>

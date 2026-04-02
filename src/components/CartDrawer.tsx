@@ -93,7 +93,7 @@ export default function CartDrawer() {
                 cartItems.map((item) => (
                   <div key={item.id} className="flex gap-4">
                     <div className="w-24 h-24 bg-white border border-gray-100 p-2 flex-shrink-0">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                      <img src={item.image} alt={item.name} referrerPolicy="no-referrer" className="w-full h-full object-contain" />
                     </div>
                     <div className="flex-grow flex flex-col justify-between">
                       <div>

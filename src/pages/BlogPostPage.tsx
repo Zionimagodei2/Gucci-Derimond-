@@ -91,6 +91,7 @@ export default function BlogPostPage() {
             <img 
               src={post.image} 
               alt={post.title}
+              referrerPolicy="no-referrer"
               className="w-full h-full object-cover"
             />
           </div>

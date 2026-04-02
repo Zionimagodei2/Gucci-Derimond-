@@ -646,9 +646,9 @@ export default function AdminPage() {
                     <div className="flex flex-col gap-4">
                       <div className="w-full aspect-square max-w-[240px] border-2 border-dashed border-border flex items-center justify-center overflow-hidden bg-white rounded-xl">
                         {previewUrl ? (
-                          <img src={previewUrl} className="w-full h-full object-cover" />
+                          <img src={previewUrl} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                         ) : formData.image ? (
-                          <img src={formData.image} className="w-full h-full object-cover" />
+                          <img src={formData.image} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                         ) : (
                           <div className="flex flex-col items-center text-muted">
                             <Upload size={32} className="mb-2" />
@@ -710,7 +710,7 @@ export default function AdminPage() {
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-border/20 overflow-hidden shrink-0">
-                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                        <img src={product.image} alt={product.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                       </div>
                       <div>
                         <p className="font-bold text-sm line-clamp-1">{product.name}</p>
@@ -808,7 +808,7 @@ export default function AdminPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {marqueeImages.map((img) => (
                 <div key={img.id} className="relative group border border-border rounded-xl overflow-hidden aspect-video bg-border/10">
-                  <img src={img.image_url} alt="Marquee" className="w-full h-full object-contain p-4" />
+                  <img src={img.image_url} alt="Marquee" referrerPolicy="no-referrer" className="w-full h-full object-contain p-4" />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button 
                       onClick={() => handleDeleteMarquee(img.id)}
@@ -905,9 +905,9 @@ export default function AdminPage() {
                         <div className="flex flex-col gap-4">
                           <div className="w-full aspect-video max-w-[320px] border-2 border-dashed border-border flex items-center justify-center overflow-hidden bg-white rounded-xl">
                             {previewUrl ? (
-                              <img src={previewUrl} className="w-full h-full object-cover" />
+                              <img src={previewUrl} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                             ) : blogFormData.image ? (
-                              <img src={blogFormData.image} className="w-full h-full object-cover" />
+                              <img src={blogFormData.image} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                             ) : (
                               <div className="flex flex-col items-center text-muted">
                                 <Upload size={32} className="mb-2" />
@@ -967,7 +967,7 @@ export default function AdminPage() {
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-4">
                           <div className="w-16 h-12 bg-border/20 overflow-hidden shrink-0">
-                            {post.image && <img src={post.image} alt={post.title} className="w-full h-full object-cover" />}
+                            {post.image && <img src={post.image} alt={post.title} referrerPolicy="no-referrer" className="w-full h-full object-cover" />}
                           </div>
                           <div>
                             <p className="font-bold text-sm line-clamp-1">{post.title}</p>
@@ -1035,7 +1035,7 @@ export default function AdminPage() {
                         <td className="p-4">
                           <div className="flex items-center gap-4">
                             <div className="w-12 h-12 bg-background rounded-md overflow-hidden shrink-0 border border-border">
-                              <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                              <img src={product.image} alt={product.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                             </div>
                             <div>
                               <p className="font-bold text-sm line-clamp-1">{product.name}</p>
@@ -1379,7 +1379,7 @@ export default function AdminPage() {
                 {selectedOrder.items?.map((item, index) => (
                   <div key={index} className="flex gap-4 items-center bg-border/5 p-3 rounded-lg border border-border">
                     <div className="w-16 h-16 bg-white shrink-0 rounded overflow-hidden border border-border">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      <img src={item.image} alt={item.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-grow">
                       <h5 className="font-bold text-sm line-clamp-1">{item.name}</h5>

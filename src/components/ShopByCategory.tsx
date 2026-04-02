@@ -30,6 +30,7 @@ export default function ShopByCategory() {
                 <img 
                   src={cat.image} 
                   alt={cat.name}
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300" />

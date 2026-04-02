@@ -34,7 +34,7 @@ export default function Marquee() {
             {images.length > 0 ? (
               images.map(img => (
                 <React.Fragment key={img.id}>
-                  <img src={img.image_url} alt="Brand" loading="lazy" className="h-8 object-contain" />
+                  <img src={img.image_url} alt="Brand" loading="lazy" referrerPolicy="no-referrer" className="h-8 object-contain" />
                   <span className="w-2 h-2 bg-primary rounded-full" />
                 </React.Fragment>
               ))

@@ -230,14 +230,36 @@ async function startServer() {
       return res.json(products);
     }
     
+    if (slug === 'sale') {
+      const saleProducts = products.filter((p: any) => p.badge === 'Sale' || (p.tags && p.tags.includes('Sale')) || p.salePrice);
+      saleProducts.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      return res.json(saleProducts);
+    }
+    
+    if (slug === 'velcro-bag') {
+      const velcroProducts = products.filter((p: any) => p.name.toLowerCase().includes('velcro'));
+      velcroProducts.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      return res.json(velcroProducts);
+    }
+    
+    if (slug === 'camping-overland') {
+      const campingProducts = products.filter((p: any) => 
+        p.category && (p.category.toLowerCase().includes('camping') || p.category.toLowerCase().includes('overland') || p.category.toLowerCase().includes('tent'))
+      );
+      campingProducts.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      return res.json(campingProducts);
+    }
+    
     const collectionProductsMap = readJsonFile(COLLECTION_PRODUCTS_FILE);
     const productIds = collectionProductsMap[`/collections/${slug}`];
     
     if (!productIds) {
       // If collection not found in map, fallback to filtering by category
-      const filteredProducts = products.filter((p: any) => 
-        p.category && p.category.toLowerCase().replace(/\s+/g, '-') === slug
-      );
+      const filteredProducts = products.filter((p: any) => {
+        if (!p.category) return false;
+        const catSlug = p.category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        return catSlug === slug;
+      });
       filteredProducts.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       return res.json(filteredProducts);
     }

@@ -119,6 +119,7 @@ export default function CollectionPage() {
           <img 
             src={currentGeneration.image} 
             alt={currentGeneration.name}
+            referrerPolicy="no-referrer"
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className={`absolute inset-0 bg-gradient-to-t ${currentGeneration.color} to-transparent opacity-80`} />

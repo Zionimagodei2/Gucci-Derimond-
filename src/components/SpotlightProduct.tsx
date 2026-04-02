@@ -23,6 +23,7 @@ export default function SpotlightProduct() {
             <img 
               src={product.image} 
               alt={product.name}
+              referrerPolicy="no-referrer"
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000"
             />
           </div>

@@ -37,6 +37,7 @@ export default function ShopByGeneration() {
               <img 
                 src={gen.image} 
                 alt={gen.name}
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000"
               />
               <div className={`absolute inset-0 bg-gradient-to-t ${gen.color} to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-500`} />
