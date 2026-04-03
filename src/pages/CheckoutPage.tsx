@@ -17,7 +17,8 @@ export default function CheckoutPage() {
     city: '',
     state: '',
     zipCode: '',
-    country: 'United States'
+    country: 'United States',
+    paymentMethod: 'Credit Card'
   });
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -148,12 +149,22 @@ export default function CheckoutPage() {
                   <h2 className="text-xl font-bold uppercase tracking-tight">Payment Method</h2>
                 </div>
                 
+                <div className="mb-6">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-muted mb-2">Preferred Payment Method</label>
+                  <select name="paymentMethod" value={shippingDetails.paymentMethod} onChange={handleInputChange} className="w-full border border-border p-3 rounded focus:outline-none focus:border-primary transition-colors bg-white">
+                    <option value="Credit Card">Credit Card</option>
+                    <option value="PayPal">PayPal</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Crypto">Cryptocurrency</option>
+                  </select>
+                </div>
+
                 <div className="bg-border/10 p-4 rounded border border-border flex items-start gap-4">
                   <ShieldCheck className="text-green-600 shrink-0 mt-1" size={20} />
                   <div>
                     <h3 className="font-bold text-sm mb-1">Manual Payment Processing</h3>
                     <p className="text-xs text-muted mb-4">
-                      Submit your order details and we will contact you shortly with payment instructions.
+                      Submit your order details and we will contact you shortly with instructions to pay via {shippingDetails.paymentMethod}.
                     </p>
                     <p className="text-[10px] text-muted mt-4">
                       * Your order will be processed and shipped once the payment is confirmed.
