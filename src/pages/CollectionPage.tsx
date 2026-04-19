@@ -36,7 +36,7 @@ export default function CollectionPage() {
   const [sortBy, setSortBy] = useState<string>('Featured');
   
   const title = slug ? slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'All Products';
-  const currentGeneration = generations.find(g => g.link === `/collections/${slug}`);
+  const currentGeneration = generations.find(g => g.link === `/collections/${slug}` || g.link === `/generation/${slug}`);
 
   useEffect(() => {
     const fetchProducts = async () => {

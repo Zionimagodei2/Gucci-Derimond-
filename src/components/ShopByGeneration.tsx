@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 export const generations = [
-  { name: "3rd Gen Tacoma", years: "2016-2023", image: "https://toyotapowered.com/cdn/shop/files/2a09c8a4d22859360816d64ba2836118.jpg?v=1705382194&width=1536", link: "/generation/3rd-gen-tacoma", color: "from-primary/80" },
-  { name: "2nd Gen Tacoma", years: "2005-2015", image: "https://toyotapowered.com/cdn/shop/files/thumbnail_IMG_3094.jpg?v=1703181295&width=1920", link: "/generation/2nd-gen-tacoma", color: "from-dark/80" },
+  { name: "3rd Gen Tacoma", years: "2016-2023", image: "https://toyotapowered.com/cdn/shop/files/thumbnail_IMG_3094.jpg?v=1703181295&width=1920", link: "/generation/3rd-gen-tacoma", color: "from-primary/80" },
+  { name: "2nd Gen Tacoma", years: "2005-2015", image: "https://toyotapowered.com/cdn/shop/files/2a09c8a4d22859360816d64ba2836118.jpg?v=1705382194&width=1536", link: "/generation/2nd-gen-tacoma", color: "from-dark/80" },
   { name: "1st Gen Tacoma", years: "1996-2004", image: "https://toyotapowered.com/cdn/shop/files/image-asset.jpg?v=1702537917&width=1920", link: "/generation/1st-gen-tacoma", color: "from-dark/80" },
   { name: "5th Gen 4Runner", years: "2010-2023", image: "https://toyotapowered.com/cdn/shop/files/ig_anbu-rnr_4runner_04.webp?v=1705382094&width=2000", link: "/generation/5th-gen-4runner", color: "from-primary/80" },
   { name: "4th Gen 4Runner", years: "2003-2009", image: "https://toyotapowered.com/cdn/shop/files/4th-gen-4runner-03-09-center-console-dash-modular-accessory-mount-mamteq-offroad-547318.jpg?v=1759978315&width=1320", link: "/generation/4th-gen-4runner", color: "from-dark/80" },
